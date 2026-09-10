@@ -27,7 +27,7 @@
 .stock{font-size:12px;color:var(--success)}
 .btn{background:var(--primary);color:#fff;border:none;padding:8px 12px;border-radius:4px;cursor:pointer;width:100%;margin-top:6px}
 .btn-alt{background:#ffd814;color:#111}
-.btn-danger{background:var(--danger)}
+.btn-danger{background:var(--danger);padding:4px 8px;width:auto}
 input.qty{width:70px;padding:4px;border:1px solid #ccc;border-radius:4px}
 .cart{position:fixed;right:0;top:0;height:100%;width:350px;background:#fff;box-shadow:-2px 0 8px rgba(0,0,0,.2);transform:translateX(100%);transition:.3s;padding:16px;overflow-y:auto;z-index:20}
 .cart.open{transform:translateX(0)}
@@ -68,15 +68,15 @@ input.qty{width:70px;padding:4px;border:1px solid #ccc;border-radius:4px}
 <footer>Dees Global | Bank: 9076736714 Palmpay | WhatsApp: 09163599546</footer>
 
 <script>
-// SAME JS AS BEFORE - PRODUCTS, CART, CHECKOUT FUNCTIONS
-let products = JSON.parse(localStorage.getItem('dees_products')) || [
-  {id:1, name:"50kg Rice - Mama Gold", category:"Food", img:"https://images.unsplash.com/photo-1586201375761-83865001e31c?q=80&w=400", stock:200, moq:1, tiers:[{min:1,max:9,price:50000},{min:10,max:49,price:47000},{min:50,max:999,price:44000}]},
-  {id:2, name:"20L Vegetable Oil", category:"Food", img:"https://images.unsplash.com/photo-1474979266404-7eaacb4352fc?q=80&w=400", stock:150, moq:5, tiers:[{min:5,max:19,price:35000},{min:20,max:99,price:33000},{min:100,max:999,price:30000}]}
-];
+let products = JSON.parse(localStorage.getItem('dees_products')) || [];
 let cart = JSON.parse(localStorage.getItem('dees_cart')) || [];
 let orders = JSON.parse(localStorage.getItem('dees_orders')) || [];
 
-function renderProducts(filter=""){ /* same as before */ 
+function generateCode(){
+  return 'DG' + Math.floor(1000 + Math.random() * 9000); // 4 digits. e.g DG4829
+}
+
+function renderProducts(filter=""){
   const grid = document.getElementById('productGrid');
   const cats = [...new Set(products.map(p=>p.category))];
   document.getElementById('categories').innerHTML = `<button onclick="renderProducts()">All</button>` + cats.map(c=>`<button onclick="renderProducts('${c}')">${c}</button>`).join('');
@@ -85,15 +85,36 @@ function renderProducts(filter=""){ /* same as before */
     return `<div class="card"><img src="${p.img}"><h4>${p.name}</h4><div class="stock">${p.stock>0?'In Stock':'Out of Stock'}</div><div class="price">From ₦${price.toLocaleString()}</div><div class="tier">${p.tiers.map(t=>`${t.min}-${t.max}: ₦${t.price.toLocaleString()}`).join('<br>')}</div>MOQ: ${p.moq} <br>Qty: <input type="number" id="qty${p.id}" class="qty" value="${p.moq}" min="${p.moq}"><button class="btn" onclick="addToCart(${p.id})">Add to Cart</button></div>`}).join('');
 }
 function getPrice(product, qty){ let tier = product.tiers.find(t=>qty>=t.min && qty<=t.max) || product.tiers[product.tiers.length-1]; return tier.price; }
-function addToCart(id){ let qty = parseInt(document.getElementById('qty'+id).value); let product = products.find(p=>p.id===id); if(qty < product.moq){ alert('Minimum order is '+product.moq); return; } let price = getPrice(product, qty); let existing = cart.find(c=>c.id===id); if(existing){ existing.qty = qty; existing.total = price*qty; } else{ cart.push({id, name:product.name, qty, price, total:price*qty, selected:true}); } localStorage.setItem('dees_cart', JSON.stringify(cart)); updateCart(); }
+function addToCart(id){ let qty = parseInt(document.getElementById('qty'+id).value); let product = products.find(p=>p.id===id); if(qty < product.moq){ alert('Minimum order is '+product.moq); return; } let price = getPrice(product, qty); let existing = cart.find(c=>c.id===id); if(existing){ existing.qty = qty; existing.price = price; existing.total = price*qty; } else{ cart.push({id, name:product.name, qty, price, total:price*qty, selected:true}); } localStorage.setItem('dees_cart', JSON.stringify(cart)); updateCart(); }
 function updateCart(){ document.getElementById('cartCount').innerText = cart.length; document.getElementById('cartItems').innerHTML = cart.map((c,i)=>`<div class="cart-item"><input type="checkbox" ${c.selected?'checked':''} onchange="toggleSelect(${i})"><div style="flex:1"><div><b>${c.name}</b></div><div>Qty: <input type="number" class="qty" value="${c.qty}" min="1" onchange="updateQty(${i}, this.value)"> @ ₦${c.price.toLocaleString()}</div><div>Total: ₦${c.total.toLocaleString()}</div></div><button class="btn btn-danger" onclick="removeFromCart(${i})">X</button></div>`).join(''); let selectedTotal = cart.filter(c=>c.selected).reduce((a,b)=>a+b.total,0); document.getElementById('cartTotal').innerText = selectedTotal.toLocaleString(); }
 function toggleSelect(i){cart[i].selected=!cart[i].selected;localStorage.setItem('dees_cart', JSON.stringify(cart));updateCart();}
 function updateQty(i,val){let qty=parseInt(val);let product=products.find(p=>p.id===cart[i].id);if(qty<product.moq){alert('Minimum order is '+product.moq);return;}cart[i].qty=qty;cart[i].price=getPrice(product,qty);cart[i].total=cart[i].price*qty;localStorage.setItem('dees_cart', JSON.stringify(cart));updateCart();}
 function removeFromCart(i){cart.splice(i,1);localStorage.setItem('dees_cart', JSON.stringify(cart));updateCart();}
 function toggleCart(){document.getElementById('cart').classList.toggle('open');}
 function getSelectedItems(){return cart.filter(c=>c.selected);}
-function checkout(){let selected=getSelectedItems();let total=selected.reduce((a,b)=>a+b.total,0);if(total===0){alert('Select items to checkout');return;}let handler=PaystackPop.setup({key:'pk_test_YOUR_PAYSTACK_KEY',email:'customer@email.com',amount:total*100,currency:'NGN',callback:function(response){orders.push({id:Date.now(),items:selected,total,ref:response.reference});localStorage.setItem('dees_orders',JSON.stringify(orders));cart=cart.filter(c=>!c.selected);localStorage.setItem('dees_cart',JSON.stringify(cart));updateCart();alert('Payment successful! Ref: '+response.reference);}});handler.openIframe();}
-function whatsappOrder(){let selected=getSelectedItems();if(selected.length===0){alert('Select items to order');return;}let msg="New Wholesale Order:%0A"+selected.map(c=>`${c.name} x${c.qty} = ₦${c.total.toLocaleString()}`).join('%0A');window.open(`https://wa.me/2349163599546?text=${msg}`);}
+
+function checkout(){
+  let selected=getSelectedItems();let total=selected.reduce((a,b)=>a+b.total,0);if(total===0){alert('Select items to checkout');return;}
+  let pickupCode = generateCode();
+  let handler=PaystackPop.setup({key:'pk_test_YOUR_PAYSTACK_KEY',email:'customer@email.com',amount:total*100,currency:'NGN',callback:function(response){
+      orders.push({id:Date.now(), code:pickupCode, items:selected, total, ref:response.reference, status:"Paid"});
+      localStorage.setItem('dees_orders',JSON.stringify(orders));
+      cart=cart.filter(c=>!c.selected);localStorage.setItem('dees_cart',JSON.stringify(cart));updateCart();
+      alert(`Payment successful!\n\nYour Pickup Code: ${pickupCode}\n\nShow this code to the delivery personnel.`);
+  }});handler.openIframe();
+}
+
+function whatsappOrder(){
+  let selected=getSelectedItems();if(selected.length===0){alert('Select items to order');return;}
+  let pickupCode = generateCode();
+  orders.push({id:Date.now(), code:pickupCode, items:selected, total:selected.reduce((a,b)=>a+b.total,0), ref:"WhatsApp", status:"Pending Payment"});
+  localStorage.setItem('dees_orders',JSON.stringify(orders));
+  let msg="New Wholesale Order:%0A" + selected.map(c=>`${c.name} x${c.qty}`).join('%0A') + `%0A%0APickup Code: ${pickupCode}`;
+  window.open(`https://wa.me/2349163599546?text=${msg}`);
+  alert(`Order sent!\n\nYour Pickup Code: ${pickupCode}\n\nShow this code to the delivery personnel.`);
+  cart=cart.filter(c=>!c.selected);localStorage.setItem('dees_cart',JSON.stringify(cart));updateCart();
+}
+
 function search(){renderProducts(document.getElementById('search').value);}
 renderProducts(); updateCart();
 </script>
