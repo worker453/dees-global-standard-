@@ -3,38 +3,67 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dees Global - Wholesale Store</title>
+<title>Dees Global Standard - Wholesale Marketplace</title>
 <script src="https://js.paystack.co/v1/inline.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
-  :root{--primary:#e47911;--dark:#232f3e;--bg:#eaeded;--card:#fff;--success:#067d62;--danger:#d32f2f}
-  *{box-sizing:border-box;margin:0;padding:0;font-family:Arial, sans-serif}
-  body{background:var(--bg)}
-  header{background:var(--dark);color:#fff;padding:12px 16px;position:sticky;top:0;z-index:10}
-.top{display:flex;gap:12px;align-items:center}
-.logo{font-weight:700;font-size:18px;color:var(--primary)}
-.search{flex:1;display:flex}
-.search input{flex:1;padding:10px;border:none;border-radius:4px 0 0 4px}
-.search button{background:var(--primary);border:none;padding:0 16px;border-radius:0 4px 4px 0;cursor:pointer}
-.icons{display:flex;gap:16px;font-size:12px;cursor:pointer}
-  nav{background:#fff;padding:8px 16px;display:flex;gap:16px;overflow-x:auto}
-  nav button{border:none;background:none;cursor:pointer;padding:6px 8px;white-space:nowrap}
-.container{max-width:1200px;margin:16px auto;padding:0 16px}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px}
-.card{background:var(--card);padding:12px;border-radius:6px}
-.card img{width:100%;height:180px;object-fit:cover;border-radius:4px}
-.price{color:#B12704;font-weight:700;margin:4px 0}
-.tier{font-size:12px;color:#555}
-.stock{font-size:12px;color:var(--success)}
-.btn{background:var(--primary);color:#fff;border:none;padding:8px 12px;border-radius:4px;cursor:pointer;width:100%;margin-top:6px}
-.btn-alt{background:#ffd814;color:#111}
-.btn-danger{background:var(--danger);padding:4px 8px;width:auto}
-input.qty{width:70px;padding:4px;border:1px solid #ccc;border-radius:4px}
-.cart{position:fixed;right:0;top:0;height:100%;width:350px;background:#fff;box-shadow:-2px 0 8px rgba(0,0,0,.2);transform:translateX(100%);transition:.3s;padding:16px;overflow-y:auto;z-index:20}
-.cart.open{transform:translateX(0)}
-.cart-item{display:flex;gap:8px;align-items:center;border-bottom:1px solid #eee;padding:8px 0}
-.cart-item input[type="checkbox"]{width:18px;height:18px}
-.cart-item input.qty{width:50px}
-  footer{background:var(--dark);color:#fff;text-align:center;padding:20px;margin-top:40px;font-size:14px}
+  :root{--primary:#FF9900;--dark:#131921;--dark2:#232F3E;--bg:#EAEDED;--card:#fff;--success:#007600;--danger:#CC0C39;--text:#0F1111}
+  *{box-sizing:border-box;margin:0;padding:0;font-family:'Inter', Arial, sans-serif}
+  body{background:var(--bg);color:var(--text)}
+  
+  header{background:var(--dark);color:#fff;position:sticky;top:0;z-index:100}
+  .top{display:flex;gap:12px;align-items:center;padding:10px 20px}
+  .logo{font-weight:700;font-size:22px;color:var(--primary)}
+  .search{flex:1;display:flex}
+  .search input{flex:1;padding:12px;border:none;border-radius:6px 0 0 6px;font-size:15px}
+  .search button{background:var(--primary);border:none;padding:0 20px;border-radius:0 6px 6px 0;cursor:pointer;font-size:18px}
+  .icons{display:flex;gap:20px;font-size:13px;cursor:pointer;align-items:center}
+  .cart-icon{position:relative}
+  #cartCount{background:var(--primary);color:var(--dark);border-radius:50%;padding:2px 6px;font-weight:700;position:absolute;top:-8px;right:-10px;font-size:11px}
+
+  .hero{background:linear-gradient(90deg, #232F3E 0%, #37475A 100%);color:#fff;text-align:center;padding:40px 20px}
+  .hero h1{font-size:32px;margin-bottom:8px}
+  .hero p{font-size:16px;opacity:0.9}
+
+  nav{background:#fff;padding:10px 20px;display:flex;gap:10px;overflow-x:auto;border-bottom:1px solid #ddd}
+  nav button{border:1px solid #ddd;background:#fff;cursor:pointer;padding:8px 16px;border-radius:20px;white-space:nowrap;font-weight:600}
+  nav button.active, nav button:hover{background:var(--primary);color:#fff;border-color:var(--primary)}
+
+  .container{max-width:1300px;margin:20px auto;padding:0 20px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:20px}
+  .card{background:var(--card);padding:12px;border-radius:8px;box-shadow:0 2px 4px rgba(0,0,0,.05);transition:.2s;display:flex;flex-direction:column}
+  .card:hover{box-shadow:0 4px 12px rgba(0,0,0,.1)}
+  .card img{width:100%;height:200px;object-fit:cover;border-radius:6px;margin-bottom:8px}
+  .card h4{font-size:15px;margin-bottom:4px;height:40px;overflow:hidden}
+  .price{color:var(--danger);font-weight:700;font-size:18px;margin:4px 0}
+  .tier{font-size:11px;color:#565959;margin-bottom:6px}
+  .stock{font-size:12px;color:var(--success);font-weight:600;margin-bottom:6px}
+  .moq{font-size:12px;color:#565959}
+  .qty-wrap{display:flex;gap:6px;align-items:center;margin:8px 0}
+  .qty-wrap input{width:70px;padding:6px;border:1px solid #ccc;border-radius:4px}
+  .btn{background:var(--primary);color:#111;border:none;padding:10px 12px;border-radius:8px;cursor:pointer;width:100%;font-weight:700}
+  .btn:hover{background:#FAA716}
+  .btn-alt{background:#FFD814;color:#111}
+  .btn-danger{background:var(--danger);color:#fff;padding:4px 8px;width:auto;border-radius:4px}
+
+  .cart{position:fixed;right:0;top:0;height:100%;width:380px;background:#fff;box-shadow:-4px 0 12px rgba(0,0,0,.15);transform:translateX(100%);transition:.3s;padding:20px;overflow-y:auto;z-index:200}
+  .cart.open{transform:translateX(0)}
+  .cart h3{border-bottom:1px solid #ddd;padding-bottom:10px;margin-bottom:10px}
+  .cart-item{display:flex;gap:10px;align-items:flex-start;border-bottom:1px solid #eee;padding:12px 0}
+  .cart-item input[type="checkbox"]{width:18px;height:18px;margin-top:4px}
+  .cart-total{font-size:20px;font-weight:700;margin:16px 0}
+
+  /* CHECKOUT FORM POPUP */
+  .modal{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.6);display:none;justify-content:center;align-items:center;z-index:300}
+  .modal.open{display:flex}
+  .modal-content{background:#fff;padding:24px;border-radius:8px;width:90%;max-width:400px}
+  .modal-content h3{margin-bottom:12px}
+  .modal-content input, .modal-content textarea{width:100%;padding:10px;margin:8px 0;border:1px solid #ccc;border-radius:4px}
+
+  footer{background:var(--dark2);color:#fff;text-align:center;padding:30px 20px;margin-top:40px}
+  footer a{color:#DDD;text-decoration:none;margin:0 10px;font-size:13px}
+
+  @media(max-width:768px){.cart{width:100%}.hero h1{font-size:24px}}
 </style>
 </head>
 <body>
@@ -43,76 +72,139 @@ input.qty{width:70px;padding:4px;border:1px solid #ccc;border-radius:4px}
   <div class="top">
     <div class="logo">Dees Global</div>
     <div class="search">
-      <input id="search" placeholder="Search products...">
+      <input id="search" placeholder="Search for wholesale products...">
       <button onclick="search()">🔍</button>
     </div>
     <div class="icons">
-      <div onclick="toggleCart()">🛒 Cart <span id="cartCount">0</span></div>
       <div><a href="admin.html" style="color:#fff;text-decoration:none">⚙️ Admin</a></div>
+      <div class="cart-icon" onclick="toggleCart()">🛒 Cart <span id="cartCount">0</span></div>
     </div>
   </div>
 </header>
 
+<div class="hero">
+  <h1>Wholesale Deals, Direct From Suppliers</h1>
+  <p>Bulk pricing with tier discounts. Pay with Paystack or Order via WhatsApp.</p>
+</div>
+
 <nav id="categories"></nav>
-<div class="container"><div id="productGrid" class="grid"></div></div>
+
+<div class="container">
+  <div id="productGrid" class="grid"></div>
+</div>
 
 <div id="cart" class="cart">
   <h3>Your Cart</h3>
   <div id="cartItems"></div>
-  <h4>Selected Total: ₦<span id="cartTotal">0</span></h4>
-  <button class="btn" onclick="checkout()">Pay Selected with Paystack</button>
-  <button class="btn btn-alt" onclick="whatsappOrder()">Order Selected via WhatsApp</button>
-  <button onclick="toggleCart()">Close</button>
+  <div class="cart-total">Selected Total: ₦<span id="cartTotal">0</span></div>
+  <button class="btn" onclick="openCheckout('paystack')">Pay Selected with Paystack</button>
+  <button class="btn btn-alt" onclick="openCheckout('whatsapp')">Order Selected via WhatsApp</button>
+  <button style="width:100%;margin-top:8px;padding:10px;border:1px solid #ccc;background:#fff;border-radius:8px" onclick="toggleCart()">Continue Shopping</button>
 </div>
 
-<footer>Dees Global | Bank: 9076736714 Palmpay | WhatsApp: 09163599546</footer>
+<!-- CUSTOMER DETAILS MODAL -->
+<div id="checkoutModal" class="modal">
+  <div class="modal-content">
+    <h3>Delivery Details</h3>
+    <input id="custName" placeholder="Full Name *">
+    <input id="custPhone" placeholder="Phone Number *" type="tel">
+    <textarea id="custAddress" placeholder="Delivery Address *" rows="3"></textarea>
+    <button class="btn" onclick="submitCheckout()">Confirm Order</button>
+    <button style="width:100%;margin-top:8px;padding:10px;border:1px solid #ccc;background:#fff;border-radius:8px" onclick="closeCheckout()">Cancel</button>
+  </div>
+</div>
+
+<footer>
+  <p><b>Dees Global Standard</b></p>
+  <p>Bank: 9076736714 Palmpay | WhatsApp: 09163599546</p>
+  <div style="margin-top:10px">
+    <a href="#">About</a> <a href="#">Delivery</a> <a href="#">Contact</a>
+  </div>
+  <p style="margin-top:15px;font-size:12px;opacity:0.7">© 2026 Dees Global Standard. All rights reserved.</p>
+</footer>
 
 <script>
 let products = JSON.parse(localStorage.getItem('dees_products')) || [];
 let cart = JSON.parse(localStorage.getItem('dees_cart')) || [];
 let orders = JSON.parse(localStorage.getItem('dees_orders')) || [];
+let checkoutType = '';
 
-function generateCode(){
-  return 'DG' + Math.floor(1000 + Math.random() * 9000); // 4 digits. e.g DG4829
-}
+function generateCode(){ return 'DG' + Math.floor(1000 + Math.random() * 9000); }
 
 function renderProducts(filter=""){
   const grid = document.getElementById('productGrid');
   const cats = [...new Set(products.map(p=>p.category))];
-  document.getElementById('categories').innerHTML = `<button onclick="renderProducts()">All</button>` + cats.map(c=>`<button onclick="renderProducts('${c}')">${c}</button>`).join('');
+  let catBtns = `<button class="${filter===""?'active':''}" onclick="renderProducts('')">All</button>` + cats.map(c=>`<button class="${filter===c?'active':''}" onclick="renderProducts('${c}')">${c}</button>`).join('');
+  document.getElementById('categories').innerHTML = catBtns;
+
+  if(products.length===0){ grid.innerHTML="<p style='text-align:center;padding:40px'>No products yet. Add products from Admin page.</p>"; return; }
+
   grid.innerHTML = products.filter(p=>p.name.toLowerCase().includes(filter.toLowerCase()) && (filter==="" || p.category===filter)).map(p=>{
     let price = getPrice(p, p.moq);
-    return `<div class="card"><img src="${p.img}"><h4>${p.name}</h4><div class="stock">${p.stock>0?'In Stock':'Out of Stock'}</div><div class="price">From ₦${price.toLocaleString()}</div><div class="tier">${p.tiers.map(t=>`${t.min}-${t.max}: ₦${t.price.toLocaleString()}`).join('<br>')}</div>MOQ: ${p.moq} <br>Qty: <input type="number" id="qty${p.id}" class="qty" value="${p.moq}" min="${p.moq}"><button class="btn" onclick="addToCart(${p.id})">Add to Cart</button></div>`}).join('');
+    return `<div class="card">
+      <img src="${p.img}" onerror="this.src='https://via.placeholder.com/200'">
+      <h4>${p.name}</h4>
+      <div class="stock">${p.stock>0?'✓ In Stock':'Out of Stock'}</div>
+      <div class="price">From ₦${price.toLocaleString()}</div>
+      <div class="tier">${p.tiers.map(t=>`${t.min}-${t.max}: ₦${t.price.toLocaleString()}`).join('<br>')}</div>
+      <div class="moq">MOQ: ${p.moq}</div>
+      <div class="qty-wrap">Qty: <input type="number" id="qty${p.id}" value="${p.moq}" min="${p.moq}"></div>
+      <button class="btn" onclick="addToCart(${p.id})">Add to Cart</button>
+    </div>`}).join('');
 }
+
 function getPrice(product, qty){ let tier = product.tiers.find(t=>qty>=t.min && qty<=t.max) || product.tiers[product.tiers.length-1]; return tier.price; }
-function addToCart(id){ let qty = parseInt(document.getElementById('qty'+id).value); let product = products.find(p=>p.id===id); if(qty < product.moq){ alert('Minimum order is '+product.moq); return; } let price = getPrice(product, qty); let existing = cart.find(c=>c.id===id); if(existing){ existing.qty = qty; existing.price = price; existing.total = price*qty; } else{ cart.push({id, name:product.name, qty, price, total:price*qty, selected:true}); } localStorage.setItem('dees_cart', JSON.stringify(cart)); updateCart(); }
-function updateCart(){ document.getElementById('cartCount').innerText = cart.length; document.getElementById('cartItems').innerHTML = cart.map((c,i)=>`<div class="cart-item"><input type="checkbox" ${c.selected?'checked':''} onchange="toggleSelect(${i})"><div style="flex:1"><div><b>${c.name}</b></div><div>Qty: <input type="number" class="qty" value="${c.qty}" min="1" onchange="updateQty(${i}, this.value)"> @ ₦${c.price.toLocaleString()}</div><div>Total: ₦${c.total.toLocaleString()}</div></div><button class="btn btn-danger" onclick="removeFromCart(${i})">X</button></div>`).join(''); let selectedTotal = cart.filter(c=>c.selected).reduce((a,b)=>a+b.total,0); document.getElementById('cartTotal').innerText = selectedTotal.toLocaleString(); }
+function addToCart(id){ let qty = parseInt(document.getElementById('qty'+id).value); let product = products.find(p=>p.id===id); if(qty < product.moq){ alert('Minimum order is '+product.moq); return; } let price = getPrice(product, qty); let existing = cart.find(c=>c.id===id); if(existing){ existing.qty = qty; existing.price = price; existing.total = price*qty; } else{ cart.push({id, name:product.name, qty, price, total:price*qty, selected:true}); } localStorage.setItem('dees_cart', JSON.stringify(cart)); updateCart(); alert(product.name + ' added to cart'); }
+function updateCart(){ document.getElementById('cartCount').innerText = cart.length; document.getElementById('cartItems').innerHTML = cart.map((c,i)=>`<div class="cart-item"><input type="checkbox" ${c.selected?'checked':''} onchange="toggleSelect(${i})"><div style="flex:1"><div><b>${c.name}</b></div><div>Qty: <input type="number" style="width:60px" value="${c.qty}" min="1" onchange="updateQty(${i}, this.value)"> @ ₦${c.price.toLocaleString()}</div><div><b>Total: ₦${c.total.toLocaleString()}</b></div></div><button class="btn-danger" onclick="removeFromCart(${i})">X</button></div>`).join(''); let selectedTotal = cart.filter(c=>c.selected).reduce((a,b)=>a+b.total,0); document.getElementById('cartTotal').innerText = selectedTotal.toLocaleString(); }
 function toggleSelect(i){cart[i].selected=!cart[i].selected;localStorage.setItem('dees_cart', JSON.stringify(cart));updateCart();}
 function updateQty(i,val){let qty=parseInt(val);let product=products.find(p=>p.id===cart[i].id);if(qty<product.moq){alert('Minimum order is '+product.moq);return;}cart[i].qty=qty;cart[i].price=getPrice(product,qty);cart[i].total=cart[i].price*qty;localStorage.setItem('dees_cart', JSON.stringify(cart));updateCart();}
 function removeFromCart(i){cart.splice(i,1);localStorage.setItem('dees_cart', JSON.stringify(cart));updateCart();}
 function toggleCart(){document.getElementById('cart').classList.toggle('open');}
 function getSelectedItems(){return cart.filter(c=>c.selected);}
 
-function checkout(){
-  let selected=getSelectedItems();let total=selected.reduce((a,b)=>a+b.total,0);if(total===0){alert('Select items to checkout');return;}
-  let pickupCode = generateCode();
-  let handler=PaystackPop.setup({key:'pk_test_YOUR_PAYSTACK_KEY',email:'customer@email.com',amount:total*100,currency:'NGN',callback:function(response){
-      orders.push({id:Date.now(), code:pickupCode, items:selected, total, ref:response.reference, status:"Paid"});
-      localStorage.setItem('dees_orders',JSON.stringify(orders));
-      cart=cart.filter(c=>!c.selected);localStorage.setItem('dees_cart',JSON.stringify(cart));updateCart();
-      alert(`Payment successful!\n\nYour Pickup Code: ${pickupCode}\n\nShow this code to the delivery personnel.`);
-  }});handler.openIframe();
+function openCheckout(type){
+  let selected=getSelectedItems();if(selected.length===0){alert('Select items to checkout');return;}
+  checkoutType = type;
+  checkoutModal.classList.add('open');
 }
 
-function whatsappOrder(){
-  let selected=getSelectedItems();if(selected.length===0){alert('Select items to order');return;}
+function closeCheckout(){
+  checkoutModal.classList.remove('open');
+}
+
+function submitCheckout(){
+  let name = custName.value.trim();
+  let phone = custPhone.value.trim();
+  let address = custAddress.value.trim();
+  if(!name || !phone || !address){ alert('Please fill all delivery details'); return; }
+
+  let selected=getSelectedItems();
+  let total=selected.reduce((a,b)=>a+b.total,0);
   let pickupCode = generateCode();
-  orders.push({id:Date.now(), code:pickupCode, items:selected, total:selected.reduce((a,b)=>a+b.total,0), ref:"WhatsApp", status:"Pending Payment"});
-  localStorage.setItem('dees_orders',JSON.stringify(orders));
-  let msg="New Wholesale Order:%0A" + selected.map(c=>`${c.name} x${c.qty}`).join('%0A') + `%0A%0APickup Code: ${pickupCode}`;
-  window.open(`https://wa.me/2349163599546?text=${msg}`);
-  alert(`Order sent!\n\nYour Pickup Code: ${pickupCode}\n\nShow this code to the delivery personnel.`);
-  cart=cart.filter(c=>!c.selected);localStorage.setItem('dees_cart',JSON.stringify(cart));updateCart();
+
+  if(checkoutType === 'paystack'){
+    let handler=PaystackPop.setup({
+      key:'pk_test_YOUR_PAYSTACK_KEY',
+      email:phone + '@customer.com',
+      amount:total*100,currency:'NGN',metadata:{custom_fields:[{display_name:"Name",value:name},{display_name:"Phone",value:phone},{display_name:"Address",value:address}]},
+      callback:function(response){
+        orders.push({id:Date.now(), code:pickupCode, customer:{name,phone,address}, items:selected, total, ref:response.reference, status:"Paid"});
+        localStorage.setItem('dees_orders',JSON.stringify(orders));
+        cart=cart.filter(c=>!c.selected);localStorage.setItem('dees_cart',JSON.stringify(cart));updateCart();
+        closeCheckout();
+        alert(`Payment successful!\n\nName: ${name}\nPickup Code: ${pickupCode}\n\nShow this code to the delivery personnel.`);
+    }});handler.openIframe();
+  }
+
+  if(checkoutType === 'whatsapp'){
+    orders.push({id:Date.now(), code:pickupCode, customer:{name,phone,address}, items:selected, total, ref:"WhatsApp", status:"Pending Payment"});
+    localStorage.setItem('dees_orders',JSON.stringify(orders));
+    let msg=`New Wholesale Order:%0AName: ${name}%0APhone: ${phone}%0AAddress: ${address}%0A%0A` + selected.map(c=>`${c.name} x${c.qty} = ₦${c.total.toLocaleString()}`).join('%0A') + `%0A%0ATotal: ₦${total.toLocaleString()}%0APickup Code: ${pickupCode}`;
+    window.open(`https://wa.me/2349163599546?text=${msg}`);
+    alert(`Order sent!\n\nName: ${name}\nPickup Code: ${pickupCode}\n\nWe will call you to confirm.`);
+    cart=cart.filter(c=>!c.selected);localStorage.setItem('dees_cart',JSON.stringify(cart));updateCart();
+    closeCheckout();
+  }
 }
 
 function search(){renderProducts(document.getElementById('search').value);}
