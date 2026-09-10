@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Dees Global Standard</title>
+
+<!-- EMAILJS SCRIPT - ADDED -->
+<script type="text/javascript"
+  src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js">
+</script>
+<script type="text/javascript">
+  emailjs.init("IAPTuZqMcv--YpABj")
+</script>
+<!-- END EMAILJS SCRIPT -->
+
+<style>
+  :root{
+    --primary-red: #D00000;
+    --primary-green: #004d26;
+    --dark:#313133;
+    --bg:#f1f1f2;
+    --card:#fff;
+    --success:#008a00;
+    --danger:#D00000;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;font-family:Roboto,Arial,sans-serif}
+  html,body{overflow-x:hidden!important;width:100%;max-width:100%}
+  body{padding-bottom:70px;background:var(--bg)}
+
+  /* JUMIA STYLE TOPBAR */
+.topbar{background:var(--primary-green);padding:8px 12px;position:sticky;top:0;z-index:100;box-shadow:0 2px 4px rgba(0,0,0,.1);display:flex;align-items:center;gap:10px}
+.logo-area{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.logo-area img{height:35px;width:auto;object-fit:contain} /* KEPT YOUR SIZE */
+.searchbar{display:flex;align-items:center;background:#fff;border-radius:6px;padding:8px 12px;flex:1}
+.searchbar input{border:none;background:none;flex:1;outline:none;font-size:14px}
+.logout-btn{background:var(--primary-red);color:#fff;border:none;padding:8px 14px;border-radius:6px;font-weight:700;cursor:pointer;font-size:13px;flex-shrink:0}
+
+.call-banner{background:var(--primary-red);padding:12px 16px;font-weight:700;font-size:15px;border-bottom:1px solid #eee;color:#fff;text-align:center}
+.delivery-alert{background:#fff3cd;color:#856404;padding:14px;text-align:center;font-weight:700;margin:10px 0;border-left:4px solid var(--primary-red)}
+
+.section{background:var(--card);padding:16px;margin-bottom:10px}
+.section-title{font-weight:700;font-size:18px;margin-bottom:12px;color:var(--primary-green)}
+.products-scroll{display:flex;gap:12px;overflow-x:auto;padding-bottom:8px}
+.p-card{min-width:160px;background:var(--card);border:1px solid #eee;border-radius:8px;padding:10px}
+.p-card img{width:100%;height:140px;object-fit:cover;border-radius:6px}
+.p-name{font-size:14px;height:38px;overflow:hidden;margin:6px 0;line-height:1.3}
+.p-price{color:var(--primary-red);font-weight:700;font-size:16px}
+.p-old{color:#666;text-decoration:line-through;font-size:12px}
+
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;padding:12px}
+.grid-card{background:var(--card);padding:12px;border-radius:8px;border:1px solid #eee}
+.grid-card img{width:100%;height:160px;object-fit:cover;border-radius:6px}
+.empty-state{text-align:center;padding:60px 20px;color:#666}
+
+.btn-orange{background:var(--primary-red);color:#fff;border:none;padding:14px;border-radius:8px;width:100%;font-weight:700;font-size:16px;cursor:pointer}
+.btn-orange:hover{opacity:0.9}
+.btn-red{background:var(--primary-red);color:#fff;border:none;padding:10px;border-radius:8px;width:100%;font-weight:700;font-size:14px;cursor:pointer;margin-top:8px}
+
+.page{display:none;width:100%}
+.page.active{display:block}
+
+.cart-item{background:#fff;padding:16px;display:flex;gap:12px;margin-bottom:10px}
+.cart-item img{width:90px;height:90px;object-fit:cover;border-radius:6px}
+.cart-item-info{flex:1}
+.cart-item-name{font-weight:600;margin-bottom:4px}
+.cart-item-price{color:var(--primary-red);font-weight:700}
+.cart-item-qty{display:flex;align-items:center;gap:10px;margin-top:8px}
+.qty-btn{padding:4px 10px;border:1px solid #ddd;background:#fff;border-radius:4px}
+.cart-summary{background:#fff;padding:16px;margin-top:10px}
+.delivery-option{border:2px solid #ddd;padding:16px;border-radius:8px;margin:10px 0;cursor:pointer}
+.delivery-option.active{border-color:var(--primary-red);background:#fff5f5}
+
+.account-welcome{background:var(--primary-green);padding:20px;color:#fff}
+.account-welcome h2{font-size:20px}
+.account-welcome p{color:#fff;opacity:0.9;font-size:14px}
+.account-btns{display:flex;gap:10px;padding:16px}
+.acc-btn{flex:1;padding:14px;border-radius:8px;text-align:center;font-weight:700;text-decoration:none}
+.acc-btn-orange{background:var(--primary-red);color:#fff}
+.acc-btn-outline{border:1px solid var(--primary-green);color:var(--primary-green)}
+.account-list{background:var(--card);margin-top:10px}
+.account-list-item{display:flex;align-items:center;justify-content:space-between;padding:16px;border-bottom:1px solid #eee;cursor:pointer}
+
+.order-card{background:#fff;padding:16px;margin:10px 0;border-radius:8px;border:1px solid #eee}
+.order-header{display:flex;justify-content:space-between;margin-bottom:8px}
+.order-code{font-weight:700;color:var(--primary-red)}
+.order-status{padding:4px 10px;border-radius:20px;font-size:12px;font-weight:700}
+.status-pending{background:#fff3cd;color:#856404}
+.status-cancelled{background:#f8d7da;color:#721c24}
+.status-delivered{background:#d4edda;color:#155724}
+.order-items{font-size:13px;color:#666;margin:8px 0}
+
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:#fff;display:flex;justify-content:space-around;padding:10px 0;border-top:2px solid var(--primary-green);z-index:99;width:100%}
+.nav-item{text-align:center;font-size:12px;color:#666;font-weight:600;cursor:pointer}
+.nav-item.active{color:var(--primary-red)}
+.nav-item svg{width:26px;height:26px;margin-bottom:3px}
+
+.modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.6);z-index:300;justify-content:center;align-items:center}
+.modal.open{display:flex}
+.modal-content{background:#fff;padding:24px;border-radius:12px;width:90%;max-width:400px}
+.modal-content input{width:100%;padding:14px;margin:8px 0;border:1px solid #ccc;border-radius:6px;font-size:15px}
+</style>
+</head>
+<body>
+
+<div id="homePage" class="page active">
+  <div class="topbar">
+    <div class="logo-area">
+      <img src="https://i.ibb.co/wrzWgJkD/dees-logo-new.png" alt="Dees Logo"> <!-- YOUR NEW LOGO -->
+    </div>
+    <div class="searchbar">🔍 <input id="search" placeholder="Search products..."></div>
+    <button id="authBtn" class="logout-btn" onclick="handleTopBtn()">Login</button>
+  </div>
+
+  <div class="call-banner">CALL TO ORDER: <span id="companyPhone">08023699688</span></div>
+  <div class="delivery-alert" id="deliveryAlert">⚡ ₦2,500 FLAT DELIVERY FEE FOR ALL LAGOS ORDERS ⚡</div>
+
+  <div class="section"><div class="section-title">🔥 Promos</div><div class="products-scroll" id="promoProducts"></div></div>
+  <div class="section"><div class="section-title">📦 All Products</div><div class="grid" id="productGrid"><div class="empty-state"><h3>No Products Yet</h3><p>Add products from Admin page</p></div></div></div>
+</div>
+
+<div id="cartPage" class="page">
+  <div style="background:var(--primary-green);color:#fff;padding:16px;font-size:20px;font-weight:700">Cart</div>
+  <div id="cartContent"></div>
+</div>
+
+<div id="accountPage" class="page">
+  <div class="account-welcome">
+    <h2 id="welcomeName">Welcome!</h2>
+    <p id="welcomeEmail"></p>
+  </div>
+  <div class="account-btns">
+    <a href="https://wa.me/2349163599546" class="acc-btn acc-btn-outline">📱 WhatsApp</a>
+    <a href="tel:09163599546" class="acc-btn acc-btn-orange">📞 Call Us</a>
+  </div>
+  <div class="account-list">
+    <div class="account-list-item" onclick="showPage('ordersPage', document.querySelectorAll('.nav-item')[3])"><span>📦 My Orders</span><span>></span></div>
+    <div class="account-list-item" onclick="alert('Help & Support')"><span>❓ Help & Support</span><span>></span></div>
+    <div class="account-list-item" onclick="logoutUser()"><span>🚪 Logout</span><span>></span></div>
+  </div>
+</div>
+
+<div id="ordersPage" class="page">
+  <div style="background:var(--primary-green);color:#fff;padding:16px;font-size:20px;font-weight:700">My Orders</div>
+  <div id="ordersContent" style="padding:12px"></div>
+</div>
+
+<div class="bottom-nav">
+  <div class="nav-item active" onclick="showPage('homePage', this)"><svg fill="currentColor" viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>Home</div>
+  <div class="nav-item" onclick="showPage('cartPage', this)"><svg fill="currentColor" viewBox="0 0 24 24"><path d="M7 4V2C7 1.45 6.55 1 6 1S5 1.45 5 2v2H2v2h2v14c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8h2V6h-3V2c0-.55-.45-1-1-1s-1-1 1v2H7zm2 2h10v12c0.55.45 1 1 1H8c-.55 0-1-.45-1-1V6h2z"/></svg>Cart <span id="cartCount">0</span></div>
+  <div class="nav-item" onclick="showPage('accountPage', this)"><svg fill="currentColor" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>Account</div>
+  <div class="nav-item" onclick="showPage('ordersPage', this)"><svg fill="currentColor" viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-7 12h-2v-2h2v2zm0-4h-2V6h2v4z"/></svg>Orders</div>
+</div>
+
+<div id="authModal" class="modal">
+  <div class="modal-content">
+    <h3>Login / Register</h3>
+    <input id="authEmail" type="email" placeholder="Email *">
+    <input id="authPassword" type="password" placeholder="Password *">
+    <button class="btn-orange" onclick="handleAuth('login')">Login</button>
+    <button class="btn-orange" style="background:#666;margin-top:8px" onclick="handleAuth('signup')">Sign Up</button>
+    <button style="width:100%;margin-top:8px;background:none;border:none;color:#666" onclick="closeAuth()">Cancel</button>
+  </div>
+</div>
+
+<div id="checkoutModal" class="modal">
+  <div class="modal-content">
+    <h3>Checkout Details</h3>
+    <input id="custName" placeholder="Full Name *">
+    <input id="custPhone" placeholder="Phone Number *">
+    <input id="custAddress" placeholder="Delivery Address *">
+    <h4 style="margin-top:16px">Delivery Option</h4>
+    <div class="delivery-option active" id="optDelivery" onclick="selectDelivery('delivery')"><h4>🚚 Delivery - <span id="deliveryPriceText">₦50,000</span></h4></div>
+    <div class="delivery-option" id="optPickup" onclick="selectDelivery('pickup')"><h4>🏪 Pickup - ₦0</h4></div>
+    <div style="background:#f1f1f2;padding:16px;border-radius:8px;margin:16px 0">
+      <div style="display:flex;justify-content:space-between"><span>Subtotal:</span><span id="subTotal">₦0</span></div>
+      <div style="display:flex;justify-content:space-between"><span>Delivery Fee:</span><span id="deliveryFee">₦0</span></div>
+      <div style="display:flex;justify-content:space-between;font-weight:700;font-size:18px;margin-top:8px"><span>Total:</span><span id="grandTotal">₦0</span></div>
+    </div>
+    <button class="btn-orange" onclick="submitCheckout()">Confirm Order</button>
+    <button class="btn-orange" style="background:#666;margin-top:10px" onclick="closeCheckout()">Cancel</button>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getFirestore, collection, addDoc, serverTimestamp, getDoc, doc, getDocs, setDoc, updateDoc, query, where, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBka5c4PYa1rXpR8b3xDZnUmSTssqzOKWo",
+  authDomain: "dees-global-standard.firebaseapp.com",
+  projectId: "dees-global-standard",
+  storageBucket: "dees-global-standard.firebasestorage.app",
+  messagingSenderId: "1094953495657",
+  appId: "1:1094953495657:web:6356bafa8527f5259346f8"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+let products = [];
+let promos = [];
+let cart = JSON.parse(localStorage.getItem('dees_cart')) || [];
+let currentUser = null;
+let DELIVERY_FEE = 50000;
+let deliveryType = 'delivery';
+
+// EMAILJS FUNCTION - ADDED
+function sendOrderEmail(orderData) {
+  emailjs.send("default_service", "template_4ezptxt", {
+    to_email: "ayindeibraheem96@gmail.com",
+    order_id: orderData.id,
+    customer_name: orderData.name,
+    customer_phone: orderData.phone,
+    customer_address: orderData.address,
+    order_items: orderData.items,
+    order_total: orderData.total,
+    delivery_type: orderData.deliveryType
+  })
+ .then(function(response) {
+     console.log("Email Sent!", response);
+  }, function(error) {
+     console.log("FAILED...", error);
+  });
+}
+// END EMAILJS FUNCTION
+
+async function init() {
+  await loadSettings();
+  await loadProducts();
+  await loadPromos();
+  renderProducts();
+  updateCartCount();
+}
+init();
+
+async function loadSettings() {
+  const companyDoc = await getDoc(doc(db, "company", "info"));
+  if(companyDoc.exists()) {
+    document.getElementById('companyPhone').innerText = companyDoc.data().phone || '09163599546';
+    document.querySelector('.acc-btn-outline').href = `https://wa.me/234${companyDoc.data().phone?.slice(1)}`;
+    document.querySelector('.acc-btn-orange').href = `tel:${companyDoc.data().phone}`;
+  }
+
+  const docRef = doc(db, "settings", "delivery");
+  const docSnap = await getDoc(docRef);
+  if(docSnap.exists()) {
+    DELIVERY_FEE = docSnap.data().fee;
+  } else {
+    await setDoc(docRef, {fee: 50000});
+  }
+  document.getElementById('deliveryAlert').innerText = `⚡ ₦${DELIVERY_FEE.toLocaleString()} FLAT DELIVERY FEE FOR ALL LAGOS ORDERS ⚡`;
+  document.getElementById('deliveryPriceText').innerText = `₦${DELIVERY_FEE.toLocaleString()}`;
+}
+
+async function loadProducts(){
+  const snapshot = await getDocs(collection(db, "products"));
+  products = snapshot.docs.map(d=>({id:d.id,...d.data()}));
+}
+async function loadPromos(){
+  const snapshot = await getDocs(collection(db, "promos"));
+  promos = snapshot.docs.map(d=>({id:d.id,...d.data()}));
+}
+
+onAuthStateChanged(auth, user => {
+  currentUser = user;
+  if(user) {
+    document.getElementById('authBtn').innerText = 'Logout';
+    document.getElementById('welcomeName').innerText = `Welcome ${user.email.split('@')[0]}!`;
+    document.getElementById('welcomeEmail').innerText = user.email;
+    loadUserOrders();
+  } else {
+    document.getElementById('authBtn').innerText = 'Login';
+  }
+});
+
+window.showPage = (pageId, el) => {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById(pageId).classList.add('active');
+  if(el) el.classList.add('active');
+  if(pageId === 'cartPage') renderCart();
+  if(pageId === 'ordersPage') loadUserOrders();
+}
+
+window.handleTopBtn = () => {
+  if(currentUser) logoutUser();
+  else showAuth();
+}
+
+window.showAuth = () => document.getElementById('authModal').classList.add('open');
+window.closeAuth = () => document.getElementById('authModal').classList.remove('open');
+window.logoutUser = () => signOut(auth);
+
+window.handleAuth = async (type) => {
+  const email = document.getElementById('authEmail').value;
+  const password = document.getElementById('authPassword').value;
+  if(!email ||!password) { alert('Fill all fields'); return; }
+  try {
+    if(type === 'signup') await createUserWithEmailAndPassword(auth, email, password);
+    else await signInWithEmailAndPassword(auth, email, password);
+    closeAuth();
+  } catch(e) { alert(e.message); }
+}
+
+function renderProducts(){
+  if(products.length === 0 && promos.length === 0) return;
+
+  productGrid.innerHTML = products.length === 0? '<div class="empty-state"><h3>No Products Yet</h3><p>Add products from Admin page</p></div>' :
+  products.map(p=>{
+    const outOfStock = p.stock <= 0;
+    return `
+    <div class="grid-card">
+      <img src="${p.img}" onerror="this.src='https://via.placeholder.com/160'">
+      <div class="p-name">${p.name}</div>
+      <div class="p-price">₦${p.price.toLocaleString()}</div>
+      <div style="font-size:12px;margin:4px 0">${outOfStock? '<span style="color:#d32f2f">Out of Stock</span>' : `<span style="color:var(--primary-green)">${p.stock} left</span>`}</div>
+      <button class="btn-orange" style="padding:10px;font-size:14px;margin-top:8px;opacity:${outOfStock?0.5:1}" onclick="addToCart('${p.id}')" ${outOfStock?'disabled':''}>${outOfStock?'Out of Stock':'Add to Cart'}</button>
+    </div>
+  `}).join('');
+
+  promoProducts.innerHTML = promos.map(p=>{
+    const outOfStock = p.stock <= 0;
+    return `
+    <div class="p-card">
+      <img src="${p.img}" onerror="this.src='https://via.placeholder.com/160'">
+      <div class="p-name">${p.name}</div>
+      <div class="p-price">₦${p.price.toLocaleString()}</div>
+      <div class="p-old">₦${p.oldPrice.toLocaleString()}</div>
+      <div style="font-size:12px;margin:4px 0">${outOfStock? '<span style="color:#d32f2f">Out of Stock</span>' : `<span style="color:var(--primary-green)">${p.stock} left</span>`}</div>
+      <button class="btn-orange" style="padding:8px;font-size:13px;margin-top:6px;opacity:${outOfStock?0.5:1}" onclick="addToCart('${p.id}')" ${outOfStock?'disabled':''}>${outOfStock?'Out':'Add'}</button>
+    </div>
+  `}).join('');
+}
+
+window.addToCart = (id) => {
+  let product = [...products,...promos].find(p=>p.id===id);
+  if(product.stock <= 0) { alert('Out of Stock'); return; }
+  let existing = cart.find(c=>c.id===id);
+  if(existing){ existing.qty++; existing.total = existing.qty * product.price }
+  else{ cart.push({id, name:product.name, img:product.img, qty:1, price:product.price, total:product.price}) }
+  localStorage.setItem('dees_cart', JSON.stringify(cart));
+  updateCartCount();
+  alert(`${product.name} added!`);
+}
+
+function updateCartCount(){document.getElementById('cartCount').innerText = cart.reduce((a,b)=>a+b.qty,0);}
+
+function renderCart(){
+  if(cart.length === 0){
+    cartContent.innerHTML = `<div style="text-align:center;padding:40px;background:#fff"><h3>Your cart is empty!</h3></div>`;
+  } else {
+    let subtotal = cart.reduce((a,b)=>a+b.total,0);
+    let deliveryCost = deliveryType === 'delivery'? DELIVERY_FEE : 0;
+    let total = subtotal + deliveryCost;
+    cartContent.innerHTML = `
+      ${cart.map((c,i)=>`
+        <div class="cart-item">
+          <img src="${c.img}">
+          <div class="cart-item-info">
+            <div class="cart-item-name">${c.name}</div>
+            <div class="cart-item-price">₦${c.price.toLocaleString()}</div>
+            <div class="cart-item-qty">
+              <button class="qty-btn" onclick="changeQty(${i},-1)">-</button>
+              <span>${c.qty}</span>
+              <button class="qty-btn" onclick="changeQty(${i},1)">+</button>
+            </div>
+          </div>
+        </div>
+      `).join('')}
+      <div class="cart-summary">
+        <div style="display:flex;justify-content:space-between;font-size:18px;font-weight:700"><span>Total</span><span>₦${total.toLocaleString()}</span></div>
+        <button class="btn-orange" style="margin-top:16px" onclick="openCheckout()">Checkout</button>
+      </div>
+    `;
+  }
+}
+
+window.changeQty = (i, val) => {cart[i].qty += val;if(cart[i].qty < 1) cart.splice(i,1);else cart[i].total = cart[i].qty * cart[i].price;localStorage.setItem('dees_cart', JSON.stringify(cart));renderCart(); updateCartCount();}
+
+window.selectDelivery = (type) => {
+  deliveryType = type;
+  document.getElementById('optDelivery').classList.toggle('active', type==='delivery');
+  document.getElementById('optPickup').classList.toggle('active', type==='pickup');
+  openCheckout();
+}
+
+window.openCheckout = () => {
+  if(!currentUser) { alert('Please login first'); showAuth(); return; }
+  let subtotal = cart.reduce((a,b)=>a+b.total,0);
+  let deliveryCost = deliveryType === 'delivery'? DELIVERY_FEE : 0;
+  document.getElementById('subTotal').innerText = '₦' + subtotal.toLocaleString();
+  document.getElementById('deliveryFee').innerText = '₦' + deliveryCost.toLocaleString();
+  document.getElementById('grandTotal').innerText = '₦' + (subtotal + deliveryCost).toLocaleString();
+  document.getElementById('checkoutModal').classList.add('open');
+}
+window.closeCheckout = () => document.getElementById('checkoutModal').classList.remove('open')
+
+async function loadUserOrders(){
+  if(!currentUser){ ordersContent.innerHTML = '<div class="empty-state"><h3>Please Login</h3></div>'; return; }
+  const q = query(collection(db, "orders"), where("userId","==",currentUser.uid), orderBy("createdAt","desc"));
+  const snapshot = await getDocs(q);
+  if(snapshot.empty){
+    ordersContent.innerHTML = '<div class="empty-state"><h3>No Orders Yet</h3></div>';
+    return;
+  }
+  ordersContent.innerHTML = snapshot.docs.map(d=>{
+    const o = d.data();
+    const orderTime = o.createdAt?.toDate();
+    const now = new Date();
+    const hoursDiff = (now - orderTime) / (1000 * 60 * 60);
+    const canCancel = o.status === 'Pending' && hoursDiff < 12;
+
+    return `
+    <div class="order-card">
+      <div class="order-header">
+        <div class="order-code">Order: ${o.code}</div>
+        <div class="order-status status-${o.status.toLowerCase()}">${o.status}</div>
+      </div>
+      <div class="order-items">${o.items.map(i=>`${i.name} x${i.qty}`).join(', ')}</div>
+      <div style="display:flex;justify-content:space-between;margin-top:8px">
+        <span>Total: <b>₦${o.total.toLocaleString()}</b></span>
+        <span style="font-size:12px;color:#666">${o.deliveryType}</span>
+      </div>
+      ${canCancel? `<button class="btn-red" onclick="cancelOrder('${d.id}')">Cancel Order</button>` : ''}
+    </div>
+    `
+  }).join('');
+}
+
+window.cancelOrder = async (orderId) => {
+  if(!confirm('Are you sure you want to cancel this order?')) return;
+  const orderRef = doc(db, "orders", orderId);
+  const orderSnap = await getDoc(orderRef);
+  if(!orderSnap.exists()) return;
+  const orderData = orderSnap.data();
+  for(let item of orderData.items){
+    let col = products.find(p=>p.id===item.id)? 'products' : 'promos';
+    let ref = doc(db, col, item.id);
+    let snap = await getDoc(ref);
+    if(snap.exists()){
+      let newStock = snap.data().stock + item.qty;
+      await updateDoc(ref, {stock: newStock});
+    }
+  }
+  await updateDoc(orderRef, {status: "Cancelled"});
+  alert('Order Cancelled. Stock has been returned.');
+  loadUserOrders();
+  loadProducts();
+  loadPromos();
+  renderProducts();
+}
+
+window.submitCheckout = async () => {
+  let name=custName.value, phone=custPhone.value, address=custAddress.value;
+  if(!name||!phone||!address){alert('Fill all fields');return}
+  let subtotal=cart.reduce((a,b)=>a+b.total,0);
+  let deliveryCost = deliveryType === 'delivery'? DELIVERY_FEE : 0;
+  let total = subtotal + deliveryCost;
+  let code='DG' + Math.floor(1000 + Math.random() * 9000);
+
+  await addDoc(collection(db, "orders"), {
+    code, customer:{name,phone,address}, items:cart, subtotal, deliveryFee:deliveryCost, deliveryType, total,
+    userId: currentUser.uid, email: currentUser.email, status:"Pending", createdAt: serverTimestamp()
+  });
+
+  // SEND EMAIL TO YOU - ADDED
+  sendOrderEmail({
+    id: code,
+    name: name,
+    phone: phone,
+    address: address,
+    items: cart.map(i=>`${i.name} x${i.qty}`).join(', '),
+    total: '₦' + total.toLocaleString(),
+    deliveryType: deliveryType
+  });
+
+  for(let item of cart){
+    let col = products.find(p=>p.id===item.id)? 'products' : 'promos';
+    let ref = doc(db, col, item.id);
+    let snap = await getDoc(ref);
+    if(snap.exists()){
+      let newStock = snap.data().stock - item.qty;
+      await updateDoc(ref, {stock: newStock < 0? 0 : newStock});
+    }
+  }
+
+  cart=[];localStorage.setItem('dees_cart',JSON.stringify(cart));
+  updateCartCount();closeCheckout();renderCart();loadProducts();loadPromos();renderProducts();loadUserOrders();
+  alert(`Order placed! Code: ${code}\nTotal: ₦${total.toLocaleString()}\nType: ${deliveryType}`);
+}
+</script>
+</body>
+</html>
