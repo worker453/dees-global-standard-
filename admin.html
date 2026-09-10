@@ -2,26 +2,42 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dees Global - Admin</title>
+<title>Dees Global - Admin Login</title>
 <style>
-body{font-family:Arial;background:#f5f5f5;padding:20px}
-.container{max-width:1000px;margin:auto;background:#fff;padding:20px;border-radius:8px}
-h2{color:#232f3e}
-input,select{padding:8px;margin:4px;width:200px;border:1px solid #ccc;border-radius:4px}
-.btn{background:#e47911;color:#fff;border:none;padding:10px 16px;border-radius:4px;cursor:pointer}
-table{width:100%;border-collapse:collapse;margin-top:20px}
+body{font-family:Arial;background:#232f3e;display:flex;justify-content:center;align-items:center;height:100vh;margin:0}
+.login-box{background:#fff;padding:30px;border-radius:8px;width:320px;box-shadow:0 4px 12px rgba(0,0,0,.3)}
+.login-box h2{text-align:center;color:#e47911;margin-bottom:20px}
+input{width:100%;padding:12px;margin:8px 0;border:1px solid #ccc;border-radius:4px;box-sizing:border-box}
+.btn{background:#e47911;color:#fff;border:none;padding:12px;width:100%;border-radius:4px;cursor:pointer;font-size:16px}
+.btn:hover{background:#cc6a0e}
+.error{color:#d32f2f;text-align:center;margin-top:10px;display:none}
+.container{max-width:1100px;margin:20px auto;background:#fff;padding:20px;border-radius:8px;display:none}
+.btn-green{background:#067d62}.btn-red{background:#d32f2f}
+table{width:100%;border-collapse:collapse;margin-top:20px;font-size:14px}
 th,td{border:1px solid #ddd;padding:8px;text-align:left}
 th{background:#232f3e;color:#fff}
+.delivered{color:#067d62;font-weight:700}
+.logout{float:right;background:#555;padding:6px 12px;font-size:12px}
 </style>
 </head>
 <body>
-<div class="container">
+
+<div class="login-box" id="loginBox">
+  <h2>Admin Login</h2>
+  <input id="username" placeholder="Username">
+  <input id="password" type="password" placeholder="Password">
+  <button class="btn" onclick="login()">Login</button>
+  <div class="error" id="error">Wrong username or password</div>
+</div>
+
+<div class="container" id="adminPanel">
+  <button class="btn logout" onclick="logout()">Logout</button>
   <h2>Dees Global Admin Dashboard</h2>
   <a href="index.html">← Back to Store</a>
 
   <h3>Add / Edit Product</h3>
   <input id="pName" placeholder="Product Name">
-  <input id="pCategory" placeholder="Category e.g Food">
+  <input id="pCategory" placeholder="Category">
   <input id="pImg" placeholder="Image URL">
   <input id="pStock" type="number" placeholder="Stock">
   <input id="pMOQ" type="number" placeholder="MOQ">
@@ -38,44 +54,70 @@ th{background:#232f3e;color:#fff}
 </div>
 
 <script>
+// YOUR LOGIN DETAILS
+const ADMIN_USER = "dees global standard";
+const ADMIN_PASS = "ASISAT01";
+
 let products = JSON.parse(localStorage.getItem('dees_products')) || [];
 let orders = JSON.parse(localStorage.getItem('dees_orders')) || [];
 
-function saveProduct(){
-  let prod = {
-    id:Date.now(), name:pName.value, category:pCategory.value, img:pImg.value, 
-    stock:parseInt(pStock.value), moq:parseInt(pMOQ.value),
-    tiers:[
-      {min:1,max:9,price:parseInt(p1.value)},
-      {min:10,max:49,price:parseInt(p2.value)},
-      {min:50,max:999,price:parseInt(p3.value)}
-    ]
-  };
-  products.push(prod);
-  localStorage.setItem('dees_products', JSON.stringify(products));
-  alert('Product Saved!');
+function login(){
+  let u = username.value;
+  let p = password.value;
+  if(u === ADMIN_USER && p === ADMIN_PASS){
+    localStorage.setItem('dees_admin_loggedin', 'true');
+    showAdmin();
+  } else {
+    error.style.display = 'block';
+  }
+}
+
+function logout(){
+  localStorage.removeItem('dees_admin_loggedin');
+  location.reload();
+}
+
+function showAdmin(){
+  loginBox.style.display = 'none';
+  adminPanel.style.display = 'block';
   loadProducts();
+  loadOrders();
+}
+
+// Auto login if already logged in on this browser
+if(localStorage.getItem('dees_admin_loggedin') === 'true'){ showAdmin(); }
+
+function saveProduct(){
+  let prod = {id:Date.now(), name:pName.value, category:pCategory.value, img:pImg.value, stock:parseInt(pStock.value), moq:parseInt(pMOQ.value),
+    tiers:[{min:1,max:9,price:parseInt(p1.value)},{min:10,max:49,price:parseInt(p2.value)},{min:50,max:999,price:parseInt(p3.value)}]};
+  products.push(prod);localStorage.setItem('dees_products', JSON.stringify(products));alert('Product Saved!');loadProducts();
+  pName.value=pCategory.value=pImg.value=pStock.value=pMOQ.value=p1.value=p2.value=p3.value='';
 }
 
 function loadProducts(){
   productTable.innerHTML = "<tr><th>Name</th><th>Stock</th><th>MOQ</th><th>Price Tiers</th><th>Action</th></tr>" +
-  products.map((p,i)=>`<tr><td>${p.name}</td><td>${p.stock}</td><td>${p.moq}</td>
-  <td>${p.tiers.map(t=>`${t.min}-${t.max}: ₦${t.price}`).join('<br>')}</td>
-  <td><button onclick="deleteProd(${i})">Delete</button></td></tr>`).join('');
+  products.map((p,i)=>`<tr><td>${p.name}</td><td>${p.stock}</td><td>${p.moq}</td><td>${p.tiers.map(t=>`${t.min}-${t.max}: ₦${t.price}`).join('<br>')}</td><td><button class="btn-red" onclick="deleteProd(${i})">Delete</button></td></tr>`).join('');
 }
 
-function deleteProd(i){
-  products.splice(i,1);
-  localStorage.setItem('dees_products', JSON.stringify(products));
-  loadProducts();
+function deleteProd(i){products.splice(i,1);localStorage.setItem('dees_products', JSON.stringify(products));loadProducts();}
+
+function markDelivered(index){
+  orders[index].status = "Delivered";
+  localStorage.setItem('dees_orders',JSON.stringify(orders));
+  loadOrders();
 }
 
 function loadOrders(){
-  orderTable.innerHTML = "<tr><th>Order ID</th><th>Items</th><th>Total</th><th>Ref</th></tr>" +
-  orders.map(o=>`<tr><td>${o.id}</td><td>${o.items.map(i=>i.name+' x'+i.qty).join(', ')}</td><td>₦${o.total.toLocaleString()}</td><td>${o.ref}</td></tr>`).join('');
+  orderTable.innerHTML = "<tr><th>Pickup Code</th><th>Items</th><th>Total</th><th>Payment</th><th>Status</th><th>Action</th></tr>" +
+  orders.map((o,i)=>`<tr>
+    <td><b>${o.code}</b></td>
+    <td>${o.items.map(i=>i.name+' x'+i.qty).join(', ')}</td>
+    <td>₦${o.total.toLocaleString()}</td>
+    <td>${o.ref}</td>
+    <td class="${o.status==='Delivered'?'delivered':''}">${o.status}</td>
+    <td>${o.status!=='Delivered'?`<button class="btn-green" onclick="markDelivered(${i})">Mark Delivered</button>`:'✓ Done'}</td>
+  </tr>`).join('');
 }
-
-loadProducts(); loadOrders();
 </script>
 </body>
 </html>
