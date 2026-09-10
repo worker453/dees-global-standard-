@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dees Global Admin</title>
+<style>
+  body{font-family:Arial;background:#f1f1f2;margin:0;padding:20px}
+.container{max-width:900px;margin:auto;background:#fff;padding:20px;border-radius:8px}
+  h1{color:#f68b1e;text-align:center}
+  h2{border-bottom:2px solid #f68b1e;padding-bottom:8px;margin-top:30px}
+  input,textarea,button{width:100%;padding:12px;margin:8px 0;border:1px solid #ccc;border-radius:6px;font-size:15px;box-sizing:border-box}
+  button{background:#f68b1e;color:#fff;border:none;font-weight:700;cursor:pointer}
+  button:hover{opacity:0.9}
+  button.danger{background:#d32f2f}
+.card{border:1px solid #ddd;padding:15px;border-radius:8px;margin:10px 0}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:15px}
+.login-box{max-width:400px;margin:100px auto}
+  img{max-width:100px;border-radius:6px}
+.settings-box{background:#fff8f0;padding:15px;border-radius:8px;border:1px solid #f68b1e;margin-bottom:15px}
+.order-card{background:#f9f9f9;padding:15px;border-left:4px solid #f68b1e;margin:10px 0}
+.label{font-weight:700;margin-top:10px;display:block}
+</style>
+</head>
+<body>
+
+<div id="loginBox" class="container login-box">
+  <h1>Admin Login</h1>
+  <input id="email" type="email" placeholder="Admin Email">
+  <input id="password" type="password" placeholder="Password">
+  <button onclick="login()">Login</button>
+  <p id="loginError" style="color:red"></p>
+</div>
+
+<div id="adminPanel" class="container" style="display:none">
+  <h1>Dees Global Admin Panel</h1>
+  <button onclick="logout()" style="background:#666;width:auto;float:right">Logout</button>
+  <div style="clear:both"></div>
+
+  <!-- COMPANY SETTINGS SECTION -->
+  <h2>⚙️ Company Settings</h2>
+
+  <div class="settings-box">
+    <span class="label">Delivery Fee</span>
+    <p>Current: <b>₦<span id="currentFee">50000</span></b></p>
+    <input id="newFee" type="number" placeholder="Enter New Fee e.g. 2000">
+    <button onclick="updateSetting('delivery', 'fee', 'newFee', 'currentFee', '₦')">Update Delivery Fee</button>
+    <p id="feeMsg" style="color:green;font-weight:700"></p>
+  </div>
+
+  <div class="settings-box">
+    <span class="label">Payment Account Details</span>
+    <p>Current: <b id="currentAccount">Not Set</b></p>
+    <textarea id="newAccount" rows="3" placeholder="Bank Name: GTBank
+Account Name: Dees Global Standard
+Account No: 0123456789"></textarea>
+    <button onclick="updateSetting('company', 'account', 'newAccount', 'currentAccount', '')">Update Account</button>
+    <p id="accountMsg" style="color:green;font-weight:700"></p>
+  </div>
+
+  <div class="settings-box">
+    <span class="label">Company Phone / WhatsApp</span>
+    <p>Current: <b id="currentPhone">Not Set</b></p>
+    <input id="newPhone" type="text" placeholder="e.g. +234 801 234 5678">
+    <button onclick="updateSetting('company', 'phone', 'newPhone', 'currentPhone', '')">Update Phone</button>
+    <p id="phoneMsg" style="color:green;font-weight:700"></p>
+  </div>
+
+  <div class="settings-box">
+    <span class="label">Company Address</span>
+    <p>Current: <b id="currentAddress">Not Set</b></p>
+    <textarea id="newAddress" rows="2" placeholder="e.g. 12 Ikeja GRA, Lagos Nigeria"></textarea>
+    <button onclick="updateSetting('company', 'address', 'newAddress', 'currentAddress', '')">Update Address</button>
+    <p id="addressMsg" style="color:green;font-weight:700"></p>
+  </div>
+
+  <!-- ADD PRODUCT -->
+  <h2>➕ Add Product / Promo</h2>
+  <select id="prodType">
+    <option value="product">Regular Product</option>
+    <option value="promo">Promo Product</option>
+  </select>
+  <input id="prodName" placeholder="Product Name">
+  <input id="prodPrice" type="number" placeholder="Price e.g. 15000">
+  <input id="prodOldPrice" type="number" placeholder="Old Price - Only for Promo">
+  <input id="prodStock" type="number" placeholder="Stock Quantity e.g. 50">
+  <input id="prodImg" type="file" accept="image/*">
+  <button onclick="addProduct()">Save Product</button>
+  <p id="prodMsg" style="color:green"></p>
+
+  <!-- PRODUCTS LIST -->
+  <h2>📦 All Products</h2>
+  <div id="productsList" class="grid"></div>
+
+  <!-- PROMOS LIST -->
+  <h2>🔥 All Promos</h2>
+  <div id="promosList" class="grid"></div>
+
+  <!-- ORDERS LIST -->
+  <h2>📋 Customer Orders</h2>
+  <div id="ordersList"></div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc, getDoc, setDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBka5c4PYa1rXpR8b3xDZnUmSTssqzOKWo",
+  authDomain: "dees-global-standard.firebaseapp.com",
+  projectId: "dees-global-standard",
+  storageBucket: "dees-global-standard.firebasestorage.app",
+  messagingSenderId: "1094953495657",
+  appId: "1:1094953495657:web:6356bafa8527f5259346f8"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const storage = getStorage(app);
+
+onAuthStateChanged(auth, user => {
+  if(user) {
+    document.getElementById('loginBox').style.display = 'none';
+    document.getElementById('adminPanel').style.display = 'block';
+    loadAll();
+  } else {
+    document.getElementById('loginBox').style.display = 'block';
+    document.getElementById('adminPanel').style.display = 'none';
+  }
+});
+
+window.login = () => {
+  const email = document.getElementById('email').value;
+  const password = document.getElementById('password').value;
+  signInWithEmailAndPassword(auth, email, password)
+.catch(e => document.getElementById('loginError').innerText = e.message);
+}
+window.logout = () => signOut(auth);
+
+// UNIVERSAL UPDATE FUNCTION FOR ALL SETTINGS
+window.updateSetting = async (collectionName, field, inputId, displayId, prefix) => {
+  const newValue = document.getElementById(inputId).value;
+  if(!newValue) { alert('Please enter a value'); return; }
+
+  document.getElementById(field+'Msg').innerText = 'Saving...';
+
+  try{
+    let valueToSave = newValue;
+    if(field === 'fee') valueToSave = parseInt(newValue);
+
+    await setDoc(doc(db, collectionName, "info"), { [field]: valueToSave }, {merge: true});
+
+    document.getElementById(displayId).innerText = prefix + valueToSave.toLocaleString? valueToSave.toLocaleString() : valueToSave;
+    document.getElementById(field+'Msg').innerText = 'Updated!';
+    setTimeout(()=>document.getElementById(field+'Msg').innerText='',2000);
+    document.getElementById(inputId).value = '';
+    alert(field + ' updated successfully!');
+  }catch(e){
+    document.getElementById(field+'Msg').innerText = 'Failed!';
+    alert('ERROR: ' + e.message);
+  }
+}
+
+async function loadSettings(){
+  // Load Delivery
+  const feeDoc = await getDoc(doc(db, "settings", "delivery"));
+  if(feeDoc.exists()) document.getElementById('currentFee').innerText = feeDoc.data().fee.toLocaleString();
+  else await setDoc(doc(db, "settings", "delivery"), {fee: 2000});
+
+  // Load Company Info
+  const companyDoc = await getDoc(doc(db, "company", "info"));
+  if(companyDoc.exists()){
+    document.getElementById('currentAccount').innerText = companyDoc.data().account || 'Not Set';
+    document.getElementById('currentPhone').innerText = companyDoc.data().phone || 'Not Set';
+    document.getElementById('currentAddress').innerText = companyDoc.data().address || 'Not Set';
+  }
+}
+
+async function loadAll(){
+  await loadSettings();
+  await loadProducts();
+  await loadPromos();
+  await loadOrders();
+}
+
+window.addProduct = async () => {
+  const type = document.getElementById('prodType').value;
+  const name = document.getElementById('prodName').value;
+  const price = parseInt(document.getElementById('prodPrice').value);
+  const oldPrice = parseInt(document.getElementById('prodOldPrice').value) || 0;
+  const stock = parseInt(document.getElementById('prodStock').value) || 0;
+  const file = document.getElementById('prodImg').files[0];
+
+  if(!name ||!price ||!file || stock < 0) { alert('Fill Name, Price, Stock and Image'); return; }
+
+  document.getElementById('prodMsg').innerText = 'Uploading...';
+
+  const storageRef = ref(storage, 'products/' + Date.now() + file.name);
+  const snap = await uploadBytes(storageRef, file);
+  const url = await getDownloadURL(snap.ref);
+
+  const data = { name, price, stock, img: url, createdAt: new Date() };
+  if(type === 'promo') data.oldPrice = oldPrice;
+
+  await addDoc(collection(db, type === 'promo'? 'promos' : 'products'), data);
+  document.getElementById('prodMsg').innerText = 'Product Saved!';
+  setTimeout(()=>document.getElementById('prodMsg').innerText='',2000);
+  document.getElementById('prodName').value='';
+  document.getElementById('prodPrice').value='';
+  document.getElementById('prodOldPrice').value='';
+  document.getElementById('prodStock').value='';
+  document.getElementById('prodImg').value='';
+  loadAll();
+}
+
+async function loadProducts(){
+  const snapshot = await getDocs(collection(db, "products"));
+  productsList.innerHTML = snapshot.docs.map(d=>{
+    const p = d.data();
+    return `<div class="card">
+      <img src="${p.img}">
+      <h4>${p.name}</h4>
+      <p>₦${p.price.toLocaleString()}</p>
+      <p>Stock: <b>${p.stock}</b></p>
+      <button class="danger" onclick="deleteItem('products','${d.id}')">Delete</button>
+    </div>`
+  }).join('');
+}
+
+async function loadPromos(){
+  const snapshot = await getDocs(collection(db, "promos"));
+  promosList.innerHTML = snapshot.docs.map(d=>{
+    const p = d.data();
+    return `<div class="card">
+      <img src="${p.img}">
+      <h4>${p.name}</h4>
+      <p>₦${p.price.toLocaleString()} <s>₦${p.oldPrice?.toLocaleString()||0}</s></p>
+      <p>Stock: <b>${p.stock}</b></p>
+      <button class="danger" onclick="deleteItem('promos','${d.id}')">Delete</button>
+    </div>`
+  }).join('');
+}
+
+async function loadOrders(){
+  const q = query(collection(db, "orders"), orderBy("createdAt","desc"));
+  const snapshot = await getDocs(q);
+  ordersList.innerHTML = snapshot.empty? '<p>No orders yet</p>' : snapshot.docs.map(d=>{
+    const o = d.data();
+    return `<div class="order-card">
+      <h4>Order: ${o.code} - Status: <b>${o.status}</b></h4>
+      <p><b>Customer:</b> ${o.customer.name} - ${o.customer.phone}</p>
+      <p><b>Address:</b> ${o.customer.address}</p>
+      <p><b>Items:</b> ${o.items.map(i=>`${i.name} x${i.qty}`).join(', ')}</p>
+      <p><b>Total:</b> ₦${o.total.toLocaleString()} | <b>Type:</b> ${o.deliveryType}</p>
+    </div>`
+  }).join('');
+}
+
+window.deleteItem = async (col, id) => {
+  if(confirm('Delete this?')) {
+    await deleteDoc(doc(db, col, id));
+    loadAll();
+  }
+}
+</script>
+</body>
+</html>
