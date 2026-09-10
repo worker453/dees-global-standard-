@@ -4,170 +4,152 @@
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Dees Global - Admin</title>
 <style>
-body{font-family:Arial;background:#232f3e;display:flex;justify-content:center;align-items:center;height:100vh;margin:0}
-.login-box{background:#fff;padding:30px;border-radius:8px;width:320px;box-shadow:0 4px 12px rgba(0,0,0,.3)}
+body{font-family:Arial;background:#232f3e;margin:0;padding:20px}
+.login-box{background:#fff;padding:30px;border-radius:8px;width:320px;margin:100px auto;box-shadow:0 4px 12px rgba(0,0,0,.3)}
 .login-box h2{text-align:center;color:#e47911;margin-bottom:20px}
-input,textarea{width:100%;padding:12px;margin:8px 0;border:1px solid #ccc;border-radius:4px;box-sizing:border-box}
+input{width:100%;padding:12px;margin:8px 0;border:1px solid #ccc;border-radius:4px;box-sizing:border-box}
 .btn{background:#e47911;color:#fff;border:none;padding:12px;width:100%;border-radius:4px;cursor:pointer;font-size:16px}
 .btn:hover{background:#cc6a0e}
-.btn-green{background:#067d62}.btn-red{background:#d32f2f}.btn-orange{background:#f68b1e}
-.error{color:#d32f2f;text-align:center;margin-top:10px;display:none}
-.container{max-width:1100px;margin:20px auto;background:#fff;padding:20px;border-radius:8px;display:none}
+.btn-green{background:#067d62}.btn-red{background:#d32f2f}
+.container{max-width:1200px;margin:20px auto;background:#fff;padding:20px;border-radius:8px}
 table{width:100%;border-collapse:collapse;margin-top:20px;font-size:14px}
-th,td{border:1px solid #ddd;padding:8px;text-align:left}
+th,td{border:1px solid #ddd;padding:8px;text-align:left;vertical-align:top}
 th{background:#232f3e;color:#fff}
-.delivered{color:#067d62;font-weight:700}
-.logout{float:right;background:#555;padding:6px 12px;font-size:12px}
-.preview{width:80px;height:80px;object-fit:cover;border-radius:4px}
+.logout{float:right;background:#555;padding:6px 12px;font-size:12px;color:#fff;border:none;border-radius:4px;cursor:pointer}
 .section{background:#f1f1f2;padding:15px;margin:20px 0;border-radius:8px}
+.status{padding:4px 8px;border-radius:4px;font-weight:700}
+.success{color:#067d62}
 </style>
 </head>
 <body>
 
 <div class="login-box" id="loginBox">
   <h2>Admin Login</h2>
-  <input id="username" placeholder="Username">
+  <input id="email" type="email" placeholder="Admin Email">
   <input id="password" type="password" placeholder="Password">
   <button class="btn" onclick="login()">Login</button>
-  <div class="error" id="error">Wrong username or password</div>
 </div>
 
-<div class="container" id="adminPanel">
+<div class="container" id="adminPanel" style="display:none">
   <button class="btn logout" onclick="logout()">Logout</button>
   <h2>Dees Global Admin Dashboard</h2>
   <a href="index.html">← Back to Store</a>
 
-  <!-- SECTION 1: ADD NORMAL PRODUCTS -->
+  <!-- SECTION 1: DELIVERY SETTINGS -->
   <div class="section">
-    <h3>1. Add Normal Products</h3>
+    <h3>1. Delivery Settings</h3>
+    <label><b>Current Delivery Fee: ₦<span id="currentFee">50000</span></b></label>
+    <input id="newFee" type="number" placeholder="Enter New Delivery Fee">
+    <button class="btn" onclick="updateDeliveryFee()">Update Delivery Fee</button>
+    <p id="feeMsg" class="success"></p>
+  </div>
+
+  <!-- SECTION 2: ADD PRODUCTS -->
+  <div class="section">
+    <h3>2. Add Product</h3>
     <input id="pName" placeholder="Product Name">
-    <input id="pCategory" placeholder="Category">
-    <label><b>Upload Image:</b></label>
-    <input id="pImgFile" type="file" accept="image/*" onchange="previewImage(event,'pImg','pImgPreview')">
-    <img id="pImgPreview" class="preview" style="display:none">
-    <input id="pImg" type="hidden">
-    <input id="pStock" type="number" placeholder="Stock">
-    <input id="pMOQ" type="number" placeholder="MOQ">
-    <input id="p1" type="number" placeholder="Price 1-9">
-    <input id="p2" type="number" placeholder="Price 10-49">
-    <input id="p3" type="number" placeholder="Price 50+">
+    <input id="pPrice" type="number" placeholder="Price">
+    <input id="pImg" placeholder="Image URL">
     <button class="btn" onclick="saveProduct()">Save Product</button>
   </div>
 
-  <!-- SECTION 2: ADD PROMOS -->
-  <div class="section" style="background:#ffeeba">
-    <h3>2. Add Promo Product</h3>
-    <input id="fName" placeholder="Product Name">
-    <label><b>Upload Image:</b></label>
-    <input id="fImgFile" type="file" accept="image/*" onchange="previewImage(event,'fImg','fImgPreview')">
-    <img id="fImgPreview" class="preview" style="display:none">
-    <input id="fImg" type="hidden">
-    <input id="fPrice" type="number" placeholder="Promo Price">
-    <input id="fOldPrice" type="number" placeholder="Old Price">
-    <button class="btn-orange" onclick="savePromo()">Add to Promos</button>
-  </div>
-
-  <h3>All Products</h3>
-  <table id="productTable"></table>
-
-  <h3>Promo Products</h3>
-  <table id="flashTable"></table>
-
-  <h3>Orders</h3>
-  <table id="orderTable"></table>
+  <h3>All Orders from Customers</h3>
+  <table id="orderTable">
+    <thead><tr><th>Code</th><th>Customer</th><th>Items</th><th>Total</th><th>Status</th><th>Action</th></tr></thead>
+    <tbody></tbody>
+  </table>
 </div>
 
-<script>
-const ADMIN_USER = "dees global standard";
-const ADMIN_PASS = "ASISAT01";
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getFirestore, collection, getDocs, doc, updateDoc, setDoc, getDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-let products = JSON.parse(localStorage.getItem('dees_products')) || [];
-let promos = JSON.parse(localStorage.getItem('dees_promos')) || []; // CHANGED
-let orders = JSON.parse(localStorage.getItem('dees_orders')) || [];
+const firebaseConfig = {
+  apiKey: "AIzaSyBka5c4PYa1rXpR8b3xDZnUmSTssqzOKWo",
+  authDomain: "dees-global-standard.firebaseapp.com",
+  projectId: "dees-global-standard",
+  storageBucket: "dees-global-standard.firebasestorage.app",
+  messagingSenderId: "1094953495657",
+  appId: "1:1094953495657:web:6356bafa8527f5259346f8"
+};
 
-function login(){
-  if(username.value === ADMIN_USER && password.value === ADMIN_PASS){
-    localStorage.setItem('dees_admin_loggedin', 'true');
-    showAdmin();
-  } else { error.style.display = 'block'; }
-}
-function logout(){ localStorage.removeItem('dees_admin_loggedin'); location.reload(); }
-function showAdmin(){ loginBox.style.display = 'none'; adminPanel.style.display = 'block'; loadProducts(); loadPromos(); loadOrders(); }
-if(localStorage.getItem('dees_admin_loggedin') === 'true'){ showAdmin(); }
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
 
-function previewImage(event, targetId, previewId){
-  const file = event.target.files[0];
-  if(!file) return;
-  const reader = new FileReader();
-  reader.onload = function(e){
-    document.getElementById(targetId).value = e.target.result;
-    document.getElementById(previewId).src = e.target.result;
-    document.getElementById(previewId).style.display = 'block';
+onAuthStateChanged(auth, user => {
+  if(user) {
+    document.getElementById('loginBox').style.display = 'none';
+    document.getElementById('adminPanel').style.display = 'block';
+    loadDeliveryFee();
+    loadOrders();
   }
-  reader.readAsDataURL(file);
+});
+
+window.login = async () => {
+  const email = document.getElementById('email').value;
+  const password = document.getElementById('password').value;
+  try { await signInWithEmailAndPassword(auth, email, password); } 
+  catch(e) { alert(e.message); }
 }
 
-function saveProduct(){
-  if(!pImg.value){ alert('Upload image'); return; }
-  let prod = {
-    id:Date.now(), name:pName.value, category:pCategory.value, img:pImg.value,
-    stock:parseInt(pStock.value), moq:parseInt(pMOQ.value),
-    tiers:[{min:1,max:9,price:parseInt(p1.value)},{min:10,max:49,price:parseInt(p2.value)},{min:50,max:999,price:parseInt(p3.value)}]
-  };
-  products.push(prod);
-  localStorage.setItem('dees_products', JSON.stringify(products));
-  alert('Product Saved!');
-  loadProducts();
-  pName.value=pCategory.value=pStock.value=pMOQ.value=p1.value=p2.value=p3.value='';
-  pImg.value=''; pImgPreview.style.display='none'; pImgFile.value='';
+window.logout = () => signOut(auth);
+
+// LOAD CURRENT DELIVERY FEE
+async function loadDeliveryFee() {
+  const docRef = doc(db, "settings", "delivery");
+  const docSnap = await getDoc(docRef);
+  if(docSnap.exists()) {
+    document.getElementById('currentFee').innerText = docSnap.data().fee.toLocaleString();
+  }
 }
 
-function savePromo(){ // CHANGED
-  if(!fImg.value){ alert('Upload image'); return; }
-  let promo = {
-    id:Date.now(), name:fName.value, img:fImg.value,
-    price:parseInt(fPrice.value), oldPrice:parseInt(fOldPrice.value)
-  };
-  promos.push(promo);
-  localStorage.setItem('dees_promos', JSON.stringify(promos)); // CHANGED
-  alert('Added to Promos!');
-  loadPromos();
-  fName.value=fPrice.value=fOldPrice.value='';
-  fImg.value=''; fImgPreview.style.display='none'; fImgFile.value='';
+// UPDATE DELIVERY FEE
+window.updateDeliveryFee = async () => {
+  const newFee = parseInt(document.getElementById('newFee').value);
+  if(!newFee || newFee < 0) { alert('Enter valid amount'); return; }
+  
+  await setDoc(doc(db, "settings", "delivery"), { fee: newFee });
+  document.getElementById('currentFee').innerText = newFee.toLocaleString();
+  document.getElementById('feeMsg').innerText = 'Delivery fee updated successfully!';
+  document.getElementById('newFee').value = '';
+  setTimeout(()=>document.getElementById('feeMsg').innerText='',3000);
 }
 
-function loadProducts(){
-  productTable.innerHTML = "<tr><th>Image</th><th>Name</th><th>Stock</th><th>MOQ</th><th>Price</th><th>Action</th></tr>" +
-  products.map((p,i)=>`<tr>
-    <td><img src="${p.img}" class="preview"></td>
-    <td>${p.name}</td><td>${p.stock}</td><td>${p.moq}</td>
-    <td>From ₦${p.tiers[0].price.toLocaleString()}</td>
-    <td><button class="btn-red" onclick="deleteProd(${i})">Delete</button></td>
-  </tr>`).join('');
+async function loadOrders() {
+  const q = query(collection(db, "orders"), orderBy("createdAt", "desc"));
+  const snapshot = await getDocs(q);
+  const tbody = document.querySelector('#orderTable tbody');
+  
+  if(snapshot.empty) { tbody.innerHTML = '<tr><td colspan="6">No orders yet</td></tr>'; return; }
+
+  tbody.innerHTML = snapshot.docs.map(docSnap => {
+    const o = docSnap.data();
+    return `
+      <tr>
+        <td><b>${o.code}</b></td>
+        <td>${o.customer.name}<br>${o.customer.phone}<br>${o.customer.address}</td>
+        <td>${o.items.map(i=>i.name+' x'+i.qty).join('<br>')}</td>
+        <td>₦${o.total.toLocaleString()}<br><small>Delivery: ₦${o.deliveryFee.toLocaleString()}</small></td>
+        <td><span class="status" style="background:${o.status==='Pending'?'#fff3cd':'#d4edda'}">${o.status}</span></td>
+        <td>
+          <button class="btn-green" onclick="updateStatus('${docSnap.id}', 'Delivered')">Delivered</button>
+          <button class="btn" onclick="window.open('tel:${o.customer.phone}')">Call</button>
+        </td>
+      </tr>
+    `;
+  }).join('');
 }
 
-function loadPromos(){ // CHANGED
-  flashTable.innerHTML = "<tr><th>Image</th><th>Name</th><th>Promo Price</th><th>Old Price</th><th>Action</th></tr>" +
-  promos.map((f,i)=>`<tr>
-    <td><img src="${f.img}" class="preview"></td>
-    <td>${f.name}</td><td>₦${f.price.toLocaleString()}</td><td>₦${f.oldPrice.toLocaleString()}</td>
-    <td><button class="btn-red" onclick="deletePromo(${i})">Remove</button></td>
-  </tr>`).join('');
+window.updateStatus = async (id, status) => {
+  await updateDoc(doc(db, "orders", id), { status });
+  alert('Updated to ' + status);
+  loadOrders();
 }
 
-function deleteProd(i){products.splice(i,1);localStorage.setItem('dees_products', JSON.stringify(products));loadProducts();}
-function deletePromo(i){promos.splice(i,1);localStorage.setItem('dees_promos', JSON.stringify(promos));loadPromos();} // CHANGED
+window.saveProduct = () => alert('Product save coming next');
 
-function loadOrders(){
-  orderTable.innerHTML = "<tr><th>Code</th><th>Customer</th><th>Items</th><th>Total</th><th>Status</th></tr>" +
-  orders.map(o=>`<tr>
-    <td><b>${o.code}</b></td>
-    <td>${o.customer?o.customer.name + '<br>' + o.customer.phone:'N/A'}</td>
-    <td>${o.items.map(i=>i.name+' x'+i.qty).join(', ')}</td>
-    <td>₦${o.total.toLocaleString()}</td>
-    <td>${o.status}</td>
-  </tr>`).join('');
-}
 </script>
 </body>
 </html>
