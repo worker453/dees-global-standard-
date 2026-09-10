@@ -7,7 +7,7 @@
 body{font-family:Arial;background:#232f3e;display:flex;justify-content:center;align-items:center;height:100vh;margin:0}
 .login-box{background:#fff;padding:30px;border-radius:8px;width:320px;box-shadow:0 4px 12px rgba(0,0,0,.3)}
 .login-box h2{text-align:center;color:#e47911;margin-bottom:20px}
-input{width:100%;padding:12px;margin:8px 0;border:1px solid #ccc;border-radius:4px;box-sizing:border-box}
+input,textarea{width:100%;padding:12px;margin:8px 0;border:1px solid #ccc;border-radius:4px;box-sizing:border-box}
 .btn{background:#e47911;color:#fff;border:none;padding:12px;width:100%;border-radius:4px;cursor:pointer;font-size:16px}
 .btn:hover{background:#cc6a0e}
 .error{color:#d32f2f;text-align:center;margin-top:10px;display:none}
@@ -18,6 +18,7 @@ th,td{border:1px solid #ddd;padding:8px;text-align:left}
 th{background:#232f3e;color:#fff}
 .delivered{color:#067d62;font-weight:700}
 .logout{float:right;background:#555;padding:6px 12px;font-size:12px}
+.preview{width:100px;height:100px;object-fit:cover;border-radius:4px;margin-top:8px;border:1px solid #ddd}
 </style>
 </head>
 <body>
@@ -38,7 +39,12 @@ th{background:#232f3e;color:#fff}
   <h3>Add / Edit Product</h3>
   <input id="pName" placeholder="Product Name">
   <input id="pCategory" placeholder="Category">
-  <input id="pImg" placeholder="Image URL">
+  
+  <label><b>Upload Product Image:</b></label>
+  <input id="pImgFile" type="file" accept="image/*" onchange="previewImage(event)">
+  <img id="imgPreview" class="preview" style="display:none">
+  <input id="pImg" type="hidden"> <!-- this will store base64 -->
+
   <input id="pStock" type="number" placeholder="Stock">
   <input id="pMOQ" type="number" placeholder="MOQ">
   <input id="p1" type="number" placeholder="Price 1-9">
@@ -84,19 +90,58 @@ function showAdmin(){
   loadOrders();
 }
 
-// Auto login if already logged in on this browser
+// IMAGE UPLOAD PREVIEW
+function previewImage(event){
+  const file = event.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e){
+    document.getElementById('pImg').value = e.target.result; // save base64
+    document.getElementById('imgPreview').src = e.target.result;
+    document.getElementById('imgPreview').style.display = 'block';
+  }
+  reader.readAsDataURL(file);
+}
+
+// Auto login if already logged in
 if(localStorage.getItem('dees_admin_loggedin') === 'true'){ showAdmin(); }
 
 function saveProduct(){
-  let prod = {id:Date.now(), name:pName.value, category:pCategory.value, img:pImg.value, stock:parseInt(pStock.value), moq:parseInt(pMOQ.value),
-    tiers:[{min:1,max:9,price:parseInt(p1.value)},{min:10,max:49,price:parseInt(p2.value)},{min:50,max:999,price:parseInt(p3.value)}]};
-  products.push(prod);localStorage.setItem('dees_products', JSON.stringify(products));alert('Product Saved!');loadProducts();
-  pName.value=pCategory.value=pImg.value=pStock.value=pMOQ.value=p1.value=p2.value=p3.value='';
+  if(!pImg.value){ alert('Please upload an image'); return; }
+  let prod = {
+    id:Date.now(), 
+    name:pName.value, 
+    category:pCategory.value, 
+    img:pImg.value, // base64 image
+    stock:parseInt(pStock.value), 
+    moq:parseInt(pMOQ.value),
+    tiers:[
+      {min:1,max:9,price:parseInt(p1.value)},
+      {min:10,max:49,price:parseInt(p2.value)},
+      {min:50,max:999,price:parseInt(p3.value)}
+    ]
+  };
+  products.push(prod);
+  localStorage.setItem('dees_products', JSON.stringify(products));
+  alert('Product Saved!');
+  loadProducts();
+  // clear form
+  pName.value=pCategory.value=pStock.value=pMOQ.value=p1.value=p2.value=p3.value='';
+  pImg.value='';
+  imgPreview.style.display='none';
+  pImgFile.value='';
 }
 
 function loadProducts(){
-  productTable.innerHTML = "<tr><th>Name</th><th>Stock</th><th>MOQ</th><th>Price Tiers</th><th>Action</th></tr>" +
-  products.map((p,i)=>`<tr><td>${p.name}</td><td>${p.stock}</td><td>${p.moq}</td><td>${p.tiers.map(t=>`${t.min}-${t.max}: ₦${t.price}`).join('<br>')}</td><td><button class="btn-red" onclick="deleteProd(${i})">Delete</button></td></tr>`).join('');
+  productTable.innerHTML = "<tr><th>Image</th><th>Name</th><th>Stock</th><th>MOQ</th><th>Price Tiers</th><th>Action</th></tr>" +
+  products.map((p,i)=>`<tr>
+    <td><img src="${p.img}" class="preview"></td>
+    <td>${p.name}</td>
+    <td>${p.stock}</td>
+    <td>${p.moq}</td>
+    <td>${p.tiers.map(t=>`${t.min}-${t.max}: ₦${t.price}`).join('<br>')}</td>
+    <td><button class="btn-red" onclick="deleteProd(${i})">Delete</button></td>
+  </tr>`).join('');
 }
 
 function deleteProd(i){products.splice(i,1);localStorage.setItem('dees_products', JSON.stringify(products));loadProducts();}
@@ -108,9 +153,10 @@ function markDelivered(index){
 }
 
 function loadOrders(){
-  orderTable.innerHTML = "<tr><th>Pickup Code</th><th>Items</th><th>Total</th><th>Payment</th><th>Status</th><th>Action</th></tr>" +
+  orderTable.innerHTML = "<tr><th>Pickup Code</th><th>Customer</th><th>Items</th><th>Total</th><th>Payment</th><th>Status</th><th>Action</th></tr>" +
   orders.map((o,i)=>`<tr>
     <td><b>${o.code}</b></td>
+    <td>${o.customer?o.customer.name + '<br>' + o.customer.phone:'N/A'}</td>
     <td>${o.items.map(i=>i.name+' x'+i.qty).join(', ')}</td>
     <td>₦${o.total.toLocaleString()}</td>
     <td>${o.ref}</td>
