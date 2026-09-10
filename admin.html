@@ -8,17 +8,18 @@ body{font-family:Arial;background:#232f3e;margin:0;padding:20px}
 .login-box{background:#fff;padding:30px;border-radius:8px;width:320px;margin:100px auto;box-shadow:0 4px 12px rgba(0,0,0,.3)}
 .login-box h2{text-align:center;color:#e47911;margin-bottom:20px}
 input{width:100%;padding:12px;margin:8px 0;border:1px solid #ccc;border-radius:4px;box-sizing:border-box}
-.btn{background:#e47911;color:#fff;border:none;padding:12px;width:100%;border-radius:4px;cursor:pointer;font-size:16px}
+.btn{background:#e47911;color:#fff;border:none;padding:12px;width:100%;border-radius:4px;cursor:pointer;font-size:16px;font-weight:700}
 .btn:hover{background:#cc6a0e}
-.btn-green{background:#067d62}.btn-red{background:#d32f2f}
-.container{max-width:1200px;margin:20px auto;background:#fff;padding:20px;border-radius:8px}
+.btn-green{background:#067d62}.btn-red{background:#d32f2f}.btn-orange{background:#f68b1e}
+.container{max-width:1200px;margin:20px auto;background:#fff;padding:20px;border-radius:8px;display:none}
 table{width:100%;border-collapse:collapse;margin-top:20px;font-size:14px}
 th,td{border:1px solid #ddd;padding:8px;text-align:left;vertical-align:top}
 th{background:#232f3e;color:#fff}
 .logout{float:right;background:#555;padding:6px 12px;font-size:12px;color:#fff;border:none;border-radius:4px;cursor:pointer}
 .section{background:#f1f1f2;padding:15px;margin:20px 0;border-radius:8px}
-.status{padding:4px 8px;border-radius:4px;font-weight:700}
-.success{color:#067d62}
+.preview{width:80px;height:80px;object-fit:cover;border-radius:4px;margin-top:8px}
+.success{color:#067d62;font-weight:700}
+label{font-weight:700}
 </style>
 </head>
 <body>
@@ -30,46 +31,64 @@ th{background:#232f3e;color:#fff}
   <button class="btn" onclick="login()">Login</button>
 </div>
 
-<div class="container" id="adminPanel" style="display:none">
+<div class="container" id="adminPanel">
   <button class="btn logout" onclick="logout()">Logout</button>
   <h2>Dees Global Admin Dashboard</h2>
   <a href="index.html">← Back to Store</a>
 
-  <!-- SECTION 1: DELIVERY SETTINGS -->
-  <div class="section">
+  <!-- 1. DELIVERY SETTINGS -->
+  <div class="section" style="background:#d4edda">
     <h3>1. Delivery Settings</h3>
-    <label><b>Current Delivery Fee: ₦<span id="currentFee">50000</span></b></label>
+    <p>Current Delivery Fee: <b>₦<span id="currentFee">50000</span></b></p>
     <input id="newFee" type="number" placeholder="Enter New Delivery Fee">
     <button class="btn" onclick="updateDeliveryFee()">Update Delivery Fee</button>
     <p id="feeMsg" class="success"></p>
   </div>
 
-  <!-- SECTION 2: ADD PRODUCTS -->
+  <!-- 2. ADD PRODUCT -->
   <div class="section">
     <h3>2. Add Product</h3>
     <input id="pName" placeholder="Product Name">
     <input id="pPrice" type="number" placeholder="Price">
-    <input id="pImg" placeholder="Image URL">
+    <label>Upload Image:</label>
+    <input id="pImgFile" type="file" accept="image/*">
+    <img id="pImgPreview" class="preview" style="display:none">
     <button class="btn" onclick="saveProduct()">Save Product</button>
   </div>
 
+  <!-- 3. ADD PROMO -->
+  <div class="section" style="background:#ffeeba">
+    <h3>3. Add Promo Product</h3>
+    <input id="promoName" placeholder="Promo Product Name">
+    <input id="promoPrice" type="number" placeholder="Promo Price">
+    <input id="promoOldPrice" type="number" placeholder="Old Price">
+    <label>Upload Image:</label>
+    <input id="promoImgFile" type="file" accept="image/*">
+    <img id="promoImgPreview" class="preview" style="display:none">
+    <button class="btn-orange" onclick="savePromo()">Add to Promos</button>
+  </div>
+
+  <h3>All Products</h3>
+  <table id="productTable"></table>
+
+  <h3>Promo Products</h3>
+  <table id="promoTable"></table>
+
   <h3>All Orders from Customers</h3>
-  <table id="orderTable">
-    <thead><tr><th>Code</th><th>Customer</th><th>Items</th><th>Total</th><th>Status</th><th>Action</th></tr></thead>
-    <tbody></tbody>
-  </table>
+  <table id="orderTable"></table>
 </div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { getFirestore, collection, getDocs, doc, updateDoc, setDoc, getDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, setDoc, getDoc, query, orderBy, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBka5c4PYa1rXpR8b3xDZnUmSTssqzOKWo",
   authDomain: "dees-global-standard.firebaseapp.com",
   projectId: "dees-global-standard",
-  storageBucket: "dees-global-standard.firebasestorage.app",
+  storageBucket: "dees-global-standard.firebasestorage.app", // IMPORTANT FOR IMAGES
   messagingSenderId: "1094953495657",
   appId: "1:1094953495657:web:6356bafa8527f5259346f8"
 };
@@ -77,79 +96,123 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
+const storage = getStorage(app);
+
+let pImgURL = "";
+let promoImgURL = "";
+
+// IMAGE PREVIEW
+pImgFile.onchange = e => {
+  const file = e.target.files[0];
+  pImgPreview.src = URL.createObjectURL(file);
+  pImgPreview.style.display = 'block';
+}
+promoImgFile.onchange = e => {
+  const file = e.target.files[0];
+  promoImgPreview.src = URL.createObjectURL(file);
+  promoImgPreview.style.display = 'block';
+}
 
 onAuthStateChanged(auth, user => {
   if(user) {
     document.getElementById('loginBox').style.display = 'none';
     document.getElementById('adminPanel').style.display = 'block';
-    loadDeliveryFee();
-    loadOrders();
+    loadDeliveryFee(); loadProducts(); loadPromos(); loadOrders();
   }
 });
 
 window.login = async () => {
-  const email = document.getElementById('email').value;
-  const password = document.getElementById('password').value;
-  try { await signInWithEmailAndPassword(auth, email, password); } 
+  try { await signInWithEmailAndPassword(auth, email.value, password.value); } 
   catch(e) { alert(e.message); }
 }
-
 window.logout = () => signOut(auth);
 
-// LOAD CURRENT DELIVERY FEE
-async function loadDeliveryFee() {
-  const docRef = doc(db, "settings", "delivery");
-  const docSnap = await getDoc(docRef);
-  if(docSnap.exists()) {
-    document.getElementById('currentFee').innerText = docSnap.data().fee.toLocaleString();
-  }
+// UPLOAD TO FIREBASE STORAGE
+async function uploadImage(file, folder) {
+  const storageRef = ref(storage, `${folder}/${Date.now()}_${file.name}`);
+  const snap = await uploadBytes(storageRef, file);
+  return await getDownloadURL(snap.ref);
 }
 
-// UPDATE DELIVERY FEE
+// DELIVERY
+async function loadDeliveryFee() {
+  const docSnap = await getDoc(doc(db, "settings", "delivery"));
+  if(docSnap.exists()) document.getElementById('currentFee').innerText = docSnap.data().fee.toLocaleString();
+}
 window.updateDeliveryFee = async () => {
-  const newFee = parseInt(document.getElementById('newFee').value);
-  if(!newFee || newFee < 0) { alert('Enter valid amount'); return; }
-  
+  const newFee = parseInt(newFee.value);
   await setDoc(doc(db, "settings", "delivery"), { fee: newFee });
   document.getElementById('currentFee').innerText = newFee.toLocaleString();
-  document.getElementById('feeMsg').innerText = 'Delivery fee updated successfully!';
-  document.getElementById('newFee').value = '';
-  setTimeout(()=>document.getElementById('feeMsg').innerText='',3000);
+  feeMsg.innerText = 'Updated!'; setTimeout(()=>feeMsg.innerText='',2000);
 }
 
-async function loadOrders() {
+// PRODUCTS
+window.saveProduct = async () => {
+  const file = pImgFile.files[0];
+  if(!file) { alert('Upload image'); return; }
+  pImgURL = await uploadImage(file, 'products');
+  await addDoc(collection(db, "products"), {
+    name: pName.value, price: parseInt(pPrice.value), img: pImgURL
+  });
+  alert('Product Saved!');
+  pName.value = pPrice.value = ''; pImgFile.value = ''; pImgPreview.style.display='none';
+  loadProducts();
+}
+
+async function loadProducts(){
+  const snapshot = await getDocs(collection(db, "products"));
+  productTable.innerHTML = "<tr><th>Image</th><th>Name</th><th>Price</th><th>Action</th></tr>" +
+  snapshot.docs.map(d=>`<tr>
+    <td><img src="${d.data().img}" class="preview"></td>
+    <td>${d.data().name}</td><td>₦${d.data().price.toLocaleString()}</td>
+    <td><button class="btn-red" onclick="deleteItem('products','${d.id}')">Delete</button></td>
+  </tr>`).join('');
+}
+
+// PROMOS
+window.savePromo = async () => {
+  const file = promoImgFile.files[0];
+  if(!file) { alert('Upload image'); return; }
+  promoImgURL = await uploadImage(file, 'promos');
+  await addDoc(collection(db, "promos"), {
+    name: promoName.value, price: parseInt(promoPrice.value), oldPrice: parseInt(promoOldPrice.value), img: promoImgURL
+  });
+  alert('Promo Added!');
+  promoName.value = promoPrice.value = promoOldPrice.value = ''; promoImgFile.value = ''; promoImgPreview.style.display='none';
+  loadPromos();
+}
+
+async function loadPromos(){
+  const snapshot = await getDocs(collection(db, "promos"));
+  promoTable.innerHTML = "<tr><th>Image</th><th>Name</th><th>Promo</th><th>Old</th><th>Action</th></tr>" +
+  snapshot.docs.map(d=>`<tr>
+    <td><img src="${d.data().img}" class="preview"></td>
+    <td>${d.data().name}</td><td>₦${d.data().price.toLocaleString()}</td><td>₦${d.data().oldPrice.toLocaleString()}</td>
+    <td><button class="btn-red" onclick="deleteItem('promos','${d.id}')">Remove</button></td>
+  </tr>`).join('');
+}
+
+window.deleteItem = async (col, id) => {
+  await deleteDoc(doc(db, col, id));
+  loadProducts(); loadPromos();
+}
+
+// ORDERS
+async function loadOrders(){
   const q = query(collection(db, "orders"), orderBy("createdAt", "desc"));
   const snapshot = await getDocs(q);
-  const tbody = document.querySelector('#orderTable tbody');
-  
-  if(snapshot.empty) { tbody.innerHTML = '<tr><td colspan="6">No orders yet</td></tr>'; return; }
-
-  tbody.innerHTML = snapshot.docs.map(docSnap => {
-    const o = docSnap.data();
-    return `
-      <tr>
-        <td><b>${o.code}</b></td>
-        <td>${o.customer.name}<br>${o.customer.phone}<br>${o.customer.address}</td>
-        <td>${o.items.map(i=>i.name+' x'+i.qty).join('<br>')}</td>
-        <td>₦${o.total.toLocaleString()}<br><small>Delivery: ₦${o.deliveryFee.toLocaleString()}</small></td>
-        <td><span class="status" style="background:${o.status==='Pending'?'#fff3cd':'#d4edda'}">${o.status}</span></td>
-        <td>
-          <button class="btn-green" onclick="updateStatus('${docSnap.id}', 'Delivered')">Delivered</button>
-          <button class="btn" onclick="window.open('tel:${o.customer.phone}')">Call</button>
-        </td>
-      </tr>
-    `;
+  orderTable.innerHTML = "<tr><th>Code</th><th>Customer</th><th>Items</th><th>Total</th><th>Status</th></tr>" +
+  snapshot.docs.map(d=>{
+    const o = d.data();
+    return `<tr>
+      <td><b>${o.code}</b></td>
+      <td>${o.customer.name}<br>${o.customer.phone}</td>
+      <td>${o.items.map(i=>i.name+' x'+i.qty).join('<br>')}</td>
+      <td>₦${o.total.toLocaleString()}</td>
+      <td>${o.status}</td>
+    </tr>`
   }).join('');
 }
-
-window.updateStatus = async (id, status) => {
-  await updateDoc(doc(db, "orders", id), { status });
-  alert('Updated to ' + status);
-  loadOrders();
-}
-
-window.saveProduct = () => alert('Product save coming next');
-
 </script>
 </body>
 </html>
