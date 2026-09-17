@@ -9,10 +9,11 @@
 .container{max-width:900px;margin:auto;background:#fff;padding:20px;border-radius:8px}
   h1{color:#f68b1e;text-align:center}
   h2{border-bottom:2px solid #f68b1e;padding-bottom:8px;margin-top:30px}
-  input,textarea,button{width:100%;padding:12px;margin:8px 0;border:1px solid #ccc;border-radius:6px;font-size:15px;box-sizing:border-box}
+  input,textarea,button,select{width:100%;padding:12px;margin:8px 0;border:1px solid #ccc;border-radius:6px;font-size:15px;box-sizing:border-box}
   button{background:#f68b1e;color:#fff;border:none;font-weight:700;cursor:pointer}
   button:hover{opacity:0.9}
   button.danger{background:#d32f2f}
+  button.restock{background:#004d26}
 .card{border:1px solid #ddd;padding:15px;border-radius:8px;margin:10px 0}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:15px}
 .login-box{max-width:400px;margin:100px auto}
@@ -44,7 +45,7 @@
     <span class="label">Delivery Fee</span>
     <p>Current: <b>₦<span id="currentFee">50000</span></b></p>
     <input id="newFee" type="number" placeholder="Enter New Fee e.g. 2000">
-    <button onclick="updateSetting('delivery', 'fee', 'newFee', 'currentFee', '₦')">Update Delivery Fee</button>
+    <button onclick="updateSetting('settings', 'fee', 'newFee', 'currentFee', '₦', 'delivery')">Update Delivery Fee</button>
     <p id="feeMsg" style="color:green;font-weight:700"></p>
   </div>
 
@@ -54,7 +55,7 @@
     <textarea id="newAccount" rows="3" placeholder="Bank Name: GTBank
 Account Name: Dees Global Standard
 Account No: 0123456789"></textarea>
-    <button onclick="updateSetting('company', 'account', 'newAccount', 'currentAccount', '')">Update Account</button>
+    <button onclick="updateSetting('company', 'account', 'newAccount', 'currentAccount', '', 'info')">Update Account</button>
     <p id="accountMsg" style="color:green;font-weight:700"></p>
   </div>
 
@@ -62,7 +63,7 @@ Account No: 0123456789"></textarea>
     <span class="label">Company Phone / WhatsApp</span>
     <p>Current: <b id="currentPhone">Not Set</b></p>
     <input id="newPhone" type="text" placeholder="e.g. +234 801 234 5678">
-    <button onclick="updateSetting('company', 'phone', 'newPhone', 'currentPhone', '')">Update Phone</button>
+    <button onclick="updateSetting('company', 'phone', 'newPhone', 'currentPhone', '', 'info')">Update Phone</button>
     <p id="phoneMsg" style="color:green;font-weight:700"></p>
   </div>
 
@@ -70,7 +71,7 @@ Account No: 0123456789"></textarea>
     <span class="label">Company Address</span>
     <p>Current: <b id="currentAddress">Not Set</b></p>
     <textarea id="newAddress" rows="2" placeholder="e.g. 12 Ikeja GRA, Lagos Nigeria"></textarea>
-    <button onclick="updateSetting('company', 'address', 'newAddress', 'currentAddress', '')">Update Address</button>
+    <button onclick="updateSetting('company', 'address', 'newAddress', 'currentAddress', '', 'info')">Update Address</button>
     <p id="addressMsg" style="color:green;font-weight:700"></p>
   </div>
 
@@ -140,20 +141,16 @@ window.login = () => {
 }
 window.logout = () => signOut(auth);
 
-// UNIVERSAL UPDATE FUNCTION FOR ALL SETTINGS
-window.updateSetting = async (collectionName, field, inputId, displayId, prefix) => {
+// FIXED UNIVERSAL UPDATE FUNCTION
+window.updateSetting = async (collectionName, field, inputId, displayId, prefix, docId) => {
   const newValue = document.getElementById(inputId).value;
   if(!newValue) { alert('Please enter a value'); return; }
-
   document.getElementById(field+'Msg').innerText = 'Saving...';
-
   try{
     let valueToSave = newValue;
     if(field === 'fee') valueToSave = parseInt(newValue);
-
-    await setDoc(doc(db, collectionName, "info"), { [field]: valueToSave }, {merge: true});
-
-    document.getElementById(displayId).innerText = prefix + valueToSave.toLocaleString? valueToSave.toLocaleString() : valueToSave;
+    await setDoc(doc(db, collectionName, docId), { [field]: valueToSave }, {merge: true});
+    document.getElementById(displayId).innerText = prefix + (valueToSave.toLocaleString? valueToSave.toLocaleString() : valueToSave);
     document.getElementById(field+'Msg').innerText = 'Updated!';
     setTimeout(()=>document.getElementById(field+'Msg').innerText='',2000);
     document.getElementById(inputId).value = '';
@@ -165,12 +162,10 @@ window.updateSetting = async (collectionName, field, inputId, displayId, prefix)
 }
 
 async function loadSettings(){
-  // Load Delivery
   const feeDoc = await getDoc(doc(db, "settings", "delivery"));
   if(feeDoc.exists()) document.getElementById('currentFee').innerText = feeDoc.data().fee.toLocaleString();
   else await setDoc(doc(db, "settings", "delivery"), {fee: 2000});
 
-  // Load Company Info
   const companyDoc = await getDoc(doc(db, "company", "info"));
   if(companyDoc.exists()){
     document.getElementById('currentAccount').innerText = companyDoc.data().account || 'Not Set';
@@ -193,18 +188,13 @@ window.addProduct = async () => {
   const oldPrice = parseInt(document.getElementById('prodOldPrice').value) || 0;
   const stock = parseInt(document.getElementById('prodStock').value) || 0;
   const file = document.getElementById('prodImg').files[0];
-
   if(!name ||!price ||!file || stock < 0) { alert('Fill Name, Price, Stock and Image'); return; }
-
   document.getElementById('prodMsg').innerText = 'Uploading...';
-
   const storageRef = ref(storage, 'products/' + Date.now() + file.name);
   const snap = await uploadBytes(storageRef, file);
   const url = await getDownloadURL(snap.ref);
-
   const data = { name, price, stock, img: url, createdAt: new Date() };
   if(type === 'promo') data.oldPrice = oldPrice;
-
   await addDoc(collection(db, type === 'promo'? 'promos' : 'products'), data);
   document.getElementById('prodMsg').innerText = 'Product Saved!';
   setTimeout(()=>document.getElementById('prodMsg').innerText='',2000);
@@ -216,6 +206,17 @@ window.addProduct = async () => {
   loadAll();
 }
 
+// NEW: RESTOCK FUNCTION
+window.updateStock = async (col, id, currentStock) => {
+  const input = prompt(`Current stock is ${currentStock}. Enter NEW total stock:`, currentStock);
+  if(input === null) return;
+  const newQty = parseInt(input);
+  if(isNaN(newQty) || newQty < 0){ alert('Invalid number'); return; }
+  await updateDoc(doc(db, col, id), { stock: newQty });
+  alert('Stock updated to ' + newQty);
+  loadAll();
+}
+
 async function loadProducts(){
   const snapshot = await getDocs(collection(db, "products"));
   productsList.innerHTML = snapshot.docs.map(d=>{
@@ -224,7 +225,8 @@ async function loadProducts(){
       <img src="${p.img}">
       <h4>${p.name}</h4>
       <p>₦${p.price.toLocaleString()}</p>
-      <p>Stock: <b>${p.stock}</b></p>
+      <p>Stock: <b style="color:${p.stock<=0?'red':'green'}">${p.stock}</b></p>
+      <button class="restock" onclick="updateStock('products','${d.id}', ${p.stock})">📦 Restock / Edit Stock</button>
       <button class="danger" onclick="deleteItem('products','${d.id}')">Delete</button>
     </div>`
   }).join('');
@@ -238,7 +240,8 @@ async function loadPromos(){
       <img src="${p.img}">
       <h4>${p.name}</h4>
       <p>₦${p.price.toLocaleString()} <s>₦${p.oldPrice?.toLocaleString()||0}</s></p>
-      <p>Stock: <b>${p.stock}</b></p>
+      <p>Stock: <b style="color:${p.stock<=0?'red':'green'}">${p.stock}</b></p>
+      <button class="restock" onclick="updateStock('promos','${d.id}', ${p.stock})">📦 Restock / Edit Stock</button>
       <button class="danger" onclick="deleteItem('promos','${d.id}')">Delete</button>
     </div>`
   }).join('');
